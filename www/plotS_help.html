@@ -1,0 +1,217 @@
+
+
+
+<p><br></p>
+<p><br></p>
+<div id="type-of-file-format-supported-in-plots" class="section level4">
+<h4><strong>Type of file format supported in plotS</strong></h4>
+<blockquote>
+<p>It support comma separated file (csv), tab delimited (tsv) and excel
+sheet file (xls and xlsx)</p>
+</blockquote>
+</div>
+<div id="must-the-input-data-be-of-only-numeric-columns" class="section level4">
+<h4><strong>Must the input data be of only numeric
+columns?</strong></h4>
+<blockquote>
+<p>No, data can be a combination of numerical and categorical
+variables.</p>
+</blockquote>
+</div>
+<div id="what-is-long-and-wide-format-and-why-to-reshape-it" class="section level4">
+<h4><strong>What is long and wide format, and why to reshape
+it?</strong></h4>
+<blockquote>
+<p>Each independent variable forms a column in <strong>wide
+format</strong>, and each cell or data point in the column is a record
+of dependent variable (table 1). In other words, each row is a mix of
+records of dependent value of all the independent variables. In
+contrast, independent and dependent variables are organised into
+different columns in <strong>long format</strong>, with each row
+representing the record of one independent variable (table 2). Arranging
+the data in long format allow comparisons between the independent
+variables in PlotS. It can further represent more independent variables,
+if present, in the graph using aesthetic options. To represent and
+compare variables in PlotS, reshaping to long format is required and
+recommended.</p>
+</blockquote>
+<!-- > Reshaping is required depending on the input data so that variables can be compared. In order to represent and compare variables in plotS, the input data must be in **long format** rather than **wide format**. In the example below, _Table 1_ represents the wide format, while _Table 2_ represent the long format. You need to reshape your data if it is in wide format and want to compare between variables (control, treatment1 and treatment2). -->
+<p><em>Example : the data is a comparison of yield, measured as dried
+weight of plants, obtained under control and two different treatment
+conditions. The given three growth conditions are the independent
+variables and yield is the dependent variable.</em></p>
+<template id="697eaea8-8999-4c12-8b20-80569bf96da0"><style>
+.tabwid table{
+border-spacing:0px !important;
+border-collapse:collapse;
+line-height:1;
+margin-left:auto;
+margin-right:auto;
+border-width: 0;
+border-color: transparent;
+caption-side: top;
+}
+.tabwid-caption-bottom table{
+caption-side: bottom;
+}
+.tabwid_left table{
+margin-left:0;
+}
+.tabwid_right table{
+margin-right:0;
+}
+.tabwid td, .tabwid th {
+padding: 0;
+}
+.tabwid a {
+text-decoration: none;
+}
+.tabwid thead {
+background-color: transparent;
+}
+.tabwid tfoot {
+background-color: transparent;
+}
+.tabwid table tr {
+background-color: transparent;
+}
+.katex-display {
+margin: 0 0 !important;
+}
+</style><div class="tabwid"><style>.cl-19224440{}.cl-1917af30{font-family:'Helvetica';font-size:11pt;font-weight:normal;font-style:normal;text-decoration:none;color:rgba(0, 0, 0, 1.00);background-color:transparent;}.cl-191c3d02{margin:0;text-align:center;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);padding-bottom:5pt;padding-top:5pt;padding-left:5pt;padding-right:5pt;line-height: 1;background-color:transparent;}.cl-191c3d34{margin:0;text-align:left;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);padding-bottom:5pt;padding-top:5pt;padding-left:5pt;padding-right:5pt;line-height: 1;background-color:transparent;}.cl-191c3d48{margin:0;text-align:right;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);padding-bottom:5pt;padding-top:5pt;padding-left:5pt;padding-right:5pt;line-height: 1;background-color:transparent;}.cl-191c63f4{width:1.763in;background-color:transparent;vertical-align: middle;border-bottom: 2pt solid rgba(102, 102, 102, 1.00);border-top: 2pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-191c641c{width:1.644in;background-color:transparent;vertical-align: middle;border-bottom: 2pt solid rgba(102, 102, 102, 1.00);border-top: 2pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-191c6426{width:1.916in;background-color:transparent;vertical-align: middle;border-bottom: 2pt solid rgba(102, 102, 102, 1.00);border-top: 2pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-191c6430{width:1.763in;background-color:transparent;vertical-align: middle;border-bottom: 2pt solid rgba(102, 102, 102, 1.00);border-top: 2pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-191c6444{width:1.644in;background-color:transparent;vertical-align: middle;border-bottom: 2pt solid rgba(102, 102, 102, 1.00);border-top: 2pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-191c644e{width:1.916in;background-color:transparent;vertical-align: middle;border-bottom: 2pt solid rgba(102, 102, 102, 1.00);border-top: 2pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-191c6458{width:1.763in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-191c6462{width:1.644in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-191c646c{width:1.916in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-191c6476{width:1.763in;background-color:transparent;vertical-align: middle;border-bottom: 2pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-191c6480{width:1.644in;background-color:transparent;vertical-align: middle;border-bottom: 2pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-191c648a{width:1.916in;background-color:transparent;vertical-align: middle;border-bottom: 2pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}</style><table class="cl-19224440"><thead><tr style="overflow-wrap:break-word;"><th colspan="4" class="cl-191c63f4"><p class="cl-191c3d02"><span class="cl-1917af30">Table 1. Wide format table. Each independent variable forms the column and each cell is the record of dependent variable i.e. yield.</span></p></th></tr><tr style="overflow-wrap:break-word;"><th class="cl-191c6430"><p class="cl-191c3d34"><span class="cl-1917af30">sample</span></p></th><th class="cl-191c6444"><p class="cl-191c3d48"><span class="cl-1917af30">control</span></p></th><th class="cl-191c644e"><p class="cl-191c3d48"><span class="cl-1917af30">treatment1</span></p></th><th class="cl-191c644e"><p class="cl-191c3d48"><span class="cl-1917af30">treatment2</span></p></th></tr></thead><tbody><tr style="overflow-wrap:break-word;"><td class="cl-191c6458"><p class="cl-191c3d34"><span class="cl-1917af30">sample1</span></p></td><td class="cl-191c6462"><p class="cl-191c3d48"><span class="cl-1917af30">42</span></p></td><td class="cl-191c646c"><p class="cl-191c3d48"><span class="cl-1917af30">39</span></p></td><td class="cl-191c646c"><p class="cl-191c3d48"><span class="cl-1917af30">58</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-191c6458"><p class="cl-191c3d34"><span class="cl-1917af30">sample2</span></p></td><td class="cl-191c6462"><p class="cl-191c3d48"><span class="cl-1917af30">25</span></p></td><td class="cl-191c646c"><p class="cl-191c3d48"><span class="cl-1917af30">35</span></p></td><td class="cl-191c646c"><p class="cl-191c3d48"><span class="cl-1917af30">36</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-191c6476"><p class="cl-191c3d34"><span class="cl-1917af30">sample3</span></p></td><td class="cl-191c6480"><p class="cl-191c3d48"><span class="cl-1917af30">24</span></p></td><td class="cl-191c648a"><p class="cl-191c3d48"><span class="cl-1917af30">10</span></p></td><td class="cl-191c648a"><p class="cl-191c3d48"><span class="cl-1917af30">42</span></p></td></tr></tbody></table></div></template>
+<div class="flextable-shadow-host" id="d815a2ba-99c5-4ee7-b4aa-2cf61d3bf8a0"></div>
+<script>
+var dest = document.getElementById("d815a2ba-99c5-4ee7-b4aa-2cf61d3bf8a0");
+var template = document.getElementById("697eaea8-8999-4c12-8b20-80569bf96da0");
+var fantome = dest.attachShadow({mode: 'open'});
+var templateContent = template.content;
+fantome.appendChild(templateContent);
+</script>
+
+<p><br> <br> <em>Data in the table 1, which is in a wide format,
+reshaped to long format in table 2.</em></p>
+<p><br></p>
+<template id="09eefb05-18b7-45f8-956d-82cb841b9826"><style>
+.tabwid table{
+border-spacing:0px !important;
+border-collapse:collapse;
+line-height:1;
+margin-left:auto;
+margin-right:auto;
+border-width: 0;
+border-color: transparent;
+caption-side: top;
+}
+.tabwid-caption-bottom table{
+caption-side: bottom;
+}
+.tabwid_left table{
+margin-left:0;
+}
+.tabwid_right table{
+margin-right:0;
+}
+.tabwid td, .tabwid th {
+padding: 0;
+}
+.tabwid a {
+text-decoration: none;
+}
+.tabwid thead {
+background-color: transparent;
+}
+.tabwid tfoot {
+background-color: transparent;
+}
+.tabwid table tr {
+background-color: transparent;
+}
+.katex-display {
+margin: 0 0 !important;
+}
+</style><div class="tabwid"><style>.cl-194a418e{}.cl-1941c04a{font-family:'Helvetica';font-size:11pt;font-weight:normal;font-style:normal;text-decoration:none;color:rgba(0, 0, 0, 1.00);background-color:transparent;}.cl-194538c4{margin:0;text-align:center;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);padding-bottom:5pt;padding-top:5pt;padding-left:5pt;padding-right:5pt;line-height: 1;background-color:transparent;}.cl-194538f6{margin:0;text-align:left;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);padding-bottom:5pt;padding-top:5pt;padding-left:5pt;padding-right:5pt;line-height: 1;background-color:transparent;}.cl-19453900{margin:0;text-align:right;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);padding-bottom:5pt;padding-top:5pt;padding-left:5pt;padding-right:5pt;line-height: 1;background-color:transparent;}.cl-19454de6{width:2.263in;background-color:transparent;vertical-align: middle;border-bottom: 2pt solid rgba(102, 102, 102, 1.00);border-top: 2pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-19454dfa{width:2.416in;background-color:transparent;vertical-align: middle;border-bottom: 2pt solid rgba(102, 102, 102, 1.00);border-top: 2pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-19454e04{width:2.05in;background-color:transparent;vertical-align: middle;border-bottom: 2pt solid rgba(102, 102, 102, 1.00);border-top: 2pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-19454e0e{width:2.263in;background-color:transparent;vertical-align: middle;border-bottom: 2pt solid rgba(102, 102, 102, 1.00);border-top: 2pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-19454e18{width:2.416in;background-color:transparent;vertical-align: middle;border-bottom: 2pt solid rgba(102, 102, 102, 1.00);border-top: 2pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-19454e22{width:2.05in;background-color:transparent;vertical-align: middle;border-bottom: 2pt solid rgba(102, 102, 102, 1.00);border-top: 2pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-19454e2c{width:2.263in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-19454e36{width:2.416in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-19454e40{width:2.05in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-19454e4a{width:2.263in;background-color:transparent;vertical-align: middle;border-bottom: 2pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-19454e54{width:2.416in;background-color:transparent;vertical-align: middle;border-bottom: 2pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-19454e5e{width:2.05in;background-color:transparent;vertical-align: middle;border-bottom: 2pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}</style><table class="cl-194a418e"><thead><tr style="overflow-wrap:break-word;"><th colspan="3" class="cl-19454de6"><p class="cl-194538c4"><span class="cl-1941c04a">Table 2. Long format table. Independent variables (control, treatment1 and treatment2) are organised in the &#39;treatments&#39; column and dependent variable (yield) is placed under &#39;value&#39; column.</span></p></th></tr><tr style="overflow-wrap:break-word;"><th class="cl-19454e0e"><p class="cl-194538f6"><span class="cl-1941c04a">sample</span></p></th><th class="cl-19454e18"><p class="cl-194538f6"><span class="cl-1941c04a">treatments</span></p></th><th class="cl-19454e22"><p class="cl-19453900"><span class="cl-1941c04a">value</span></p></th></tr></thead><tbody><tr style="overflow-wrap:break-word;"><td class="cl-19454e2c"><p class="cl-194538f6"><span class="cl-1941c04a">sample1</span></p></td><td class="cl-19454e36"><p class="cl-194538f6"><span class="cl-1941c04a">control</span></p></td><td class="cl-19454e40"><p class="cl-19453900"><span class="cl-1941c04a">42</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-19454e2c"><p class="cl-194538f6"><span class="cl-1941c04a">sample1</span></p></td><td class="cl-19454e36"><p class="cl-194538f6"><span class="cl-1941c04a">treatment1</span></p></td><td class="cl-19454e40"><p class="cl-19453900"><span class="cl-1941c04a">39</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-19454e2c"><p class="cl-194538f6"><span class="cl-1941c04a">sample1</span></p></td><td class="cl-19454e36"><p class="cl-194538f6"><span class="cl-1941c04a">treatment2</span></p></td><td class="cl-19454e40"><p class="cl-19453900"><span class="cl-1941c04a">58</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-19454e2c"><p class="cl-194538f6"><span class="cl-1941c04a">sample2</span></p></td><td class="cl-19454e36"><p class="cl-194538f6"><span class="cl-1941c04a">control</span></p></td><td class="cl-19454e40"><p class="cl-19453900"><span class="cl-1941c04a">25</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-19454e2c"><p class="cl-194538f6"><span class="cl-1941c04a">sample2</span></p></td><td class="cl-19454e36"><p class="cl-194538f6"><span class="cl-1941c04a">treatment1</span></p></td><td class="cl-19454e40"><p class="cl-19453900"><span class="cl-1941c04a">35</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-19454e2c"><p class="cl-194538f6"><span class="cl-1941c04a">sample2</span></p></td><td class="cl-19454e36"><p class="cl-194538f6"><span class="cl-1941c04a">treatment2</span></p></td><td class="cl-19454e40"><p class="cl-19453900"><span class="cl-1941c04a">36</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-19454e2c"><p class="cl-194538f6"><span class="cl-1941c04a">sample3</span></p></td><td class="cl-19454e36"><p class="cl-194538f6"><span class="cl-1941c04a">control</span></p></td><td class="cl-19454e40"><p class="cl-19453900"><span class="cl-1941c04a">24</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-19454e2c"><p class="cl-194538f6"><span class="cl-1941c04a">sample3</span></p></td><td class="cl-19454e36"><p class="cl-194538f6"><span class="cl-1941c04a">treatment1</span></p></td><td class="cl-19454e40"><p class="cl-19453900"><span class="cl-1941c04a">10</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-19454e4a"><p class="cl-194538f6"><span class="cl-1941c04a">sample3</span></p></td><td class="cl-19454e54"><p class="cl-194538f6"><span class="cl-1941c04a">treatment2</span></p></td><td class="cl-19454e5e"><p class="cl-19453900"><span class="cl-1941c04a">42</span></p></td></tr></tbody></table></div></template>
+<div class="flextable-shadow-host" id="36d54f64-c851-4019-a1ee-c66cf5520478"></div>
+<script>
+var dest = document.getElementById("36d54f64-c851-4019-a1ee-c66cf5520478");
+var template = document.getElementById("09eefb05-18b7-45f8-956d-82cb841b9826");
+var fantome = dest.attachShadow({mode: 'open'});
+var templateContent = template.content;
+fantome.appendChild(templateContent);
+</script>
+
+<p><br></p>
+</div>
+<div id="what-is-aesthetic-option" class="section level4">
+<h4><strong>What is aesthetic option?</strong></h4>
+<blockquote>
+<p>Aesthetic options mapped the variables to visual properties - color,
+shape or line type. It let user customize the visual properties and
+differentiate between variables.</p>
+</blockquote>
+</div>
+<div id="what-is-the-statistical-methods-used-for-conducting-normality-test" class="section level4">
+<h4><strong>What is the statistical methods used for conducting
+normality test?</strong></h4>
+<blockquote>
+<p>In PlotS, we used Shapiro-Wilk’s test if the sample size is less than
+5000, otherwise, Kolmogorov-Smirnov’s test is used.</p>
+</blockquote>
+</div>
+<div id="estimating-the-effect-size" class="section level4">
+<h4><strong>Estimating the effect size</strong></h4>
+<blockquote>
+<p>Effect size is estimated using different R packages.</p>
+</blockquote>
+<blockquote>
+<ul>
+<li>We used <strong>effectsize</strong> package of R to estimate the
+effect size of <em>T-test</em> and <em>ANOVA</em>.</li>
+</ul>
+</blockquote>
+<blockquote>
+<ul>
+<li><strong>rstatix</strong> package is used for measuring the effect
+size of <em>Wilcoxon</em> and <em>Krukal-Wallis tests</em>.</li>
+</ul>
+</blockquote>
+</div>
+<div id="does-the-app-save-user-data" class="section level4">
+<h4><strong>Does the app save user data?</strong></h4>
+<blockquote>
+<p>No, after the session ends, all data is deleted.</p>
+</blockquote>
+</div>
+<div id="r-packages-used-for-the-application" class="section level4">
+<h4><strong>R packages used for the application</strong></h4>
+<ul>
+<li><p><a href="https://ggplot2.tidyverse.org/">ggplot2</a> : most of
+the graphics in this app are created using ggplot2.</p></li>
+<li><p><a href="https://rmarkdown.rstudio.com/">rmarkdown</a> : creating
+documents for report.</p></li>
+<li><p><a href="https://cran.r-project.org/web/packages/rstatix/index.html">rstatix</a>
+: most of the statistical methods in the app use this pipe-friendly
+package.</p></li>
+<li><p><a href="https://shiny.rstudio.com/">shiny</a> : building the
+interactive web apps.</p></li>
+<li><p><a href="https://www.tidyverse.org/">tidyverse</a> : collection
+of R packages for data science.</p></li>
+<li><p>other packages:</p>
+<ul>
+<li><a href="https://cran.r-project.org/web/packages/car/index.html">car</a>,
+<a href="https://cran.r-project.org/web/packages/coin/index.html">coin</a>,
+<a href="https://cran.r-project.org/web/packages/data.table/index.html">data.table</a>,
+<a href="https://rstudio.github.io/DT/">DT</a>, <a href="https://cran.r-project.org/web/packages/effectsize/index.html">effectsize</a>,
+<a href="https://cran.r-project.org/web/packages/flextable/index.html">flextable</a>,
+<a href="https://ggforce.data-imaginist.com/">ggforce</a>, <a href="https://cran.r-project.org/web/packages/ggpp/index.html">ggpp</a>,
+<a href="https://cran.r-project.org/web/packages/ggpubr/index.html">ggpubr</a>,
+<a href="https://github.com/jtlandis/ggside">ggside</a>, <a href="https://glue.tidyverse.org/">glue</a>, <a href="https://cran.r-project.org/web/packages/MASS/index.html">MASS</a>,
+<a href="https://memoise.r-lib.org/">memoise</a>, <a href="https://cran.r-project.org/web/packages/multcompView/index.html">multcompView</a>,
+<a href="https://ycphs.github.io/openxlsx/">openxlsx</a>, <a href="https://glin.github.io/reactable/">reactable</a>, <a href="https://readxl.tidyverse.org/">readxl</a>, <a href="https://rlang.r-lib.org/">rlang</a>, <a href="https://cran.r-project.org/web/packages/scales/index.html">scales</a>,
+<a href="https://github.com/Appsilon/shiny.router">shiny.router</a>, <a href="https://github.com/daattali/shinyalert">shinyalert</a>, <a href="https://ebailey78.github.io/shinyBS/">shinyBS</a>, <a href="https://rstudio.github.io/shinydashboard/">shinydashboard</a>, <a href="https://cran.r-project.org/web/packages/shinyjqui/vignettes/introduction.html">shinyjqui</a>,
+<a href="https://cran.r-project.org/web/packages/shinyjs/vignettes/shinyjs.html">shinyjs</a>,
+<a href="https://shinyapps.dreamrs.fr/shinyWidgets/">shinyWidgets</a>,
+<a href="https://github.com/ropensci/skimr">skimr</a>, <a href="https://www.tidyverse.org/blog/2021/02/svglite-2-0-0/">svglite</a>,
+<a href="https://www.tidyverse.org/blog/2019/05/vroom-1-0-0/">vroom</a>.</li>
+</ul></li>
+</ul>
+</div>
