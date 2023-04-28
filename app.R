@@ -3553,7 +3553,7 @@ server <- function(input, output, session){
           countVar <- ptable() %>% distinct(.data[[input$xAxis]], .data[[input$colorSet]]) %>% nrow()
         }
         
-        if(countVar > 2 && input$compareOrReference == "none"){
+        if(pltType() != "none" && countVar > 2 && input$compareOrReference == "none"){
           if(input$stat == "t.test"){
             helpText("Data has more than 2 variables to compare. Consider using ANOVA or apply comparions or add reference group (options below)",
                      style= "margin-bottom:20px; border-radius:10%; color:#921802; text-align:center; padding:auto; background-color:rgba(252, 198, 116, 0.2)")#style = "margin-bottom:20px; color:#EB6305")
@@ -3663,7 +3663,7 @@ server <- function(input, output, session){
   observeEvent({
     req(input$stat %in% c("t.test", "wilcoxon.test"))},{
       
-      req(input$xAxis %in% colnames(ptable()))
+      req(input$plotType != "none", input$xAxis %in% colnames(ptable()))
       if(req(input$colorSet) == 'none' && !isTruthy(input$shapeLine)){
         #check variable count
         countVar <- ptable() %>% distinct(.data[[input$xAxis]]) %>% nrow()
@@ -3692,7 +3692,7 @@ server <- function(input, output, session){
     })
   
   # observeEvent(req(input$tw_alert) == "No",{
-  observeEvent(input$tw_alert,{
+  observeEvent(req(input$tw_alert),{
     if(isTRUE(input$tw_alert)){ #No, don't continue
       updateSelectInput(inputId = "stat", choices = c("none",statMethods), selected = "none")
     }else if(isFALSE(input$tw_alert)){ #Yes, continue
@@ -4544,7 +4544,7 @@ server <- function(input, output, session){
     req(is.data.frame(ptable()), pltType() != "none", input$xAxis, input$yAxis, input$stat %in% c("t.test", "anova"), computeFuncError(), twoAnovaError())
     #notify user
     summaryId <- waitNotify(id = "summaryId")
-    on.exit(removeNotification(summaryId),  add = TRUE)
+    on.exit(removeNotification(summaryId),  add = FALSE, after = TRUE)
     
     data <- ptable()
     
@@ -5330,14 +5330,15 @@ server <- function(input, output, session){
   
   #all parameters for plotting graph and statistic analysis is process and executed 
   # in this observeEvent.
-  observe({
+  observeEvent({
     req(is.data.frame(ptable()),
         input$xAxis,
         input$xAxis %in% colnames(ptable()),
         input$plotType != "none",
-        # input$normalizeStandardize
+        input$normalizeStandardize
         #computeFuncError() #taken care ---this is require for anova: it will reset between non-additive and additive.
     )
+  },{
     #parameters---------------------------
     # browser()
     #show notification
