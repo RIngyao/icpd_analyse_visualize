@@ -68,14 +68,6 @@ mainSection <- div(
             #ui for alerting invalid file type
             uiOutput(outputId = "UiUploadInvalid"),
             #ui for present or absent of replicates
-            # uiOutput(outputId = "UiReplicatePresent"),
-            # conditionalPanel(condition = "input.pInput",
-            #                  {opts <- list(tags$span("No", style = "font-weight:bold; color:#0099e6"), 
-            #                                tags$span("Yes", style = "font-weight:bold; color:#0099e6"))
-            #                  radioButtons(inputId = "replicatePresent", label = "Data with replicates/multiple headers", 
-            #                               choiceNames = opts, choiceValues = c("no", "yes"), selected = "no", inline = TRUE
-            #                  )}
-            #                  ),
             {opts <- list(tags$span("No", style = "font-weight:bold; color:#0099e6"), 
                           tags$span("Yes", style = "font-weight:bold; color:#0099e6"))
             radioButtons(inputId = "replicatePresent", label = "Data with replicate/multiple headers", 
@@ -101,17 +93,12 @@ mainSection <- div(
                                helpText("Provide number of header row and group/variable of replicate.", 
                                         style = "margin-top:20px; margin-bottom:7px;font-weight:bold;"), 
                                fluidRow(
-                                 # column(6,uiOutput("UiHeaderNumber")),
                                  column(6, selectInput(inputId = "headerNumber", label = "Header row", choices = 1:5, selected = 1)),
                                  #let user specify number of variables:
                                  # It is easier to process
                                  column(6, uiOutput("UiDataVariables"),
                                         bsTooltip(id = "UiDataVariables", title = "Specify the number of groups/variables to be used for replica grouping (as column)", placement = "top", trigger = "hover", options = list(container = "body"))
                                  )
-                                 # column(6, selectInput(inputId = "dataVariables", label = "Group/variables", #Number of group/variables
-                                 #                                    choices = 1, selected = 1),
-                                 #        bsTooltip(id = "dataVariables", title = "Specify the number of groups/variables to group the replicates", placement = "bottom", trigger = "hover", options = list(container = "body"))
-                                 #        )
                                  
                                ),
                                textOutput("UiVarList"),
@@ -119,8 +106,7 @@ mainSection <- div(
                                helpText("Provide variable's name and index number of the replicate columns", style = "margin-top:15px; margin-bottom:7px;font-weight:bold; text-align:center"), #3ABFF4
                                #Ui for adding variable name and replicates column
                                uiOutput("UiVarNameRepCol"),
-                               # #Ui for replicate statistic
-                               # uiOutput("UiReplicateStat"),
+                               #Ui for replicate statistic
                                conditionalPanel(condition = "input.replicatePresent == 'yes'",
                                                 {
                                                   lst <- list(tags$span("None", style = "font-weight:bold; color:#0099e6"),
@@ -133,19 +119,10 @@ mainSection <- div(
                                                 
                                ),
                                
-                               # #message on when to use mean and median
-                               # conditionalPanel(condition = "input.replicateStat != 'none'",
-                               #                  helpText("'Mean' is appropriate for parametric statistical method and 'Median' for non-parametric method.", 
-                               #                           style= "margin-bottom:15px; margin-top:0; color:black; background-color:#D6F4F7; border-radius:5%; text-align:center;")
-                               #                  #style= "margin-bottom:15px; border-radius:10%; color:#921802; text-align:center; padding:auto; background-color:rgba(252, 198, 116, 0.2)"), #Compute 'mean' to apply parametric statistic method, 'median' for non-parametric.
-                               # ),
+                               #message on when to use mean and median
                                uiOutput("UireplicateStatGroup"),
                                uiOutput("UiReplicateStatGroupMsg"), #warning message
                                uiOutput("UiReplicateStatGroupHelp"), #general message
-                               # conditionalPanel(condition = "input.replicateStat != 'none'",
-                               #                  uiOutput("UiReplicateStatGroupHelp")
-                               #                  
-                               # ),
                                #action button for running replicates parameter
                                uiOutput("UiReplicateActionButton"),
                                uiOutput("UiAfterReplicate"),
@@ -167,26 +144,18 @@ mainSection <- div(
             #ui output for choosing columns to transform the data
             #for names 
             uiOutput(outputId = "trName"),
-            # uiOutput(outputId = "trNameMsg"),
             #variable message for reshape
             conditionalPanel(condition = "input.transform == 'Yes'",
                              helpText("Choosen variables will be the independent variable. The values associated with the variables will be the dependent variable and will be placed in a separate column named 'value'.", style= "color:black; margin-top:0; background-color:#D6F4F7; border-radius:5%; text-align:center;")
             ),
             
-            # conditionalPanel(condition = "input.transform == 'Yes'",
-            #                  helpText("Choose the multiple variables to transpose and compare", style= "color:black; margin-top:0; background-color:#D6F4F7; border-radius:5%; text-align:center;")),
-            #for value
             
             #Name to be used as column name for the reshaped
-            # uiOutput(outputId = "trValue"),
             conditionalPanel(condition = "input.transform == 'Yes'",
                              #this should be compulsory, so that user understand the transformation
                              textInput(inputId = "enterName", label = "Enter a name for the reshaped column")
             ),
             
-            # conditionalPanel(condition = "input.enterName",
-            #                  helpText("Above choosen variables will be placed under this given column name.", style= "color:black; margin-top:0; background-color:#D6F4F7; border-radius:5%; text-align:center;")
-            # ),
             #error message for reshape
             conditionalPanel(condition = "input.transform == 'Yes' & input.enterName == 'value'",
                              helpText("Provide a different name, not 'value'.",
@@ -234,14 +203,12 @@ mainSection <- div(
             
             conditionalPanel(condition = " input.pInput !='' && ( (input.replicatePresent == 'yes' || input.transform == 'Yes') || (input.normalizeStandardize != 'none' ) )",
                              
-                             box(#title = "Transformed table: it will be used for plotting",
+                             box(
                                
                                title = "Organized table",
                                width = 12,
                                footer = "* This table will be used for plotting figures and statistical analysis",
                                status = "info",
-                               #show text
-                               # textOutput("textTransformTable"),
                                #download button
                                downloadButton("organizedDownload"),
                                #show transform table here
@@ -274,14 +241,12 @@ mainSection <- div(
               column(6, 
                      #input panel for figure and statistics
                      #choice of plot
-                     # uiOutput(outputId = "UiPlotType"),#require reactivity so keep in the server
                      selectInput(inputId = "plotType", label = "Choose type of plot", choices = "none"),
                      #ui alert for bar plot
                      conditionalPanel(condition = "input.plotType == 'bar plot'",
                                       helpText(list(tags$p("Use bar graph for categorical or count data!!"), tags$p("Users are encouraged to use other graph that show data distribution.")), style= "margin-bottom:10px; border-radius:10%; color:#921802; text-align:center; padding:auto; background-color:rgba(252, 198, 116, 0.2)")
                      ),
                      #additional param for histogram
-                     # uiOutput(outputId = "UiHistParam"),
                      #ui output to specify axis
                      fluidRow(
                        column(6, uiOutput("xAxisUi")),
@@ -306,11 +271,7 @@ mainSection <- div(
                      
                      #ui for bin width of histogram
                      fluidRow(column(8, uiOutput("uiBinWidth"))),
-                     # #Ui color and fill for histogram
-                     # fluidRow(
-                     #   column(6, uiOutput("UiHistBarColor")),
-                     #   column(6, uiOutput("UiHistBarFill"))
-                     # ),
+                     #Ui color and fill for histogram
                      conditionalPanel(condition = "input.plotType == 'histogram' && input.colorSet == 'none'",
                                       fluidRow(
                                         column(6, textInput(inputId = "histBarColor", label = "Bar color", placeholder = "red or #ff0000")),
@@ -350,10 +311,10 @@ mainSection <- div(
                                         uiOutput("UiErrorBarStat"),
                                         #ui message for confidence interval
                                         uiOutput("UiCIMsg"),
-                                        # #ui to display error for sd
-                                        # uiOutput("UiSdError"),
+                                        #ui to display error for sd
                                         #Ui to compute or specify the computed sd
                                         uiOutput("UilineComputeSd"), #have to be in the server logic
+                                        bsTooltip(id= "UilineComputeSd", title = "If no, specify the computed stat below", placement = "bottom"),
                                         #Ui to group by for computing standard deviation 
                                         uiOutput("UiLineGroupVar"),
                                         #ui for error bar size
@@ -364,7 +325,6 @@ mainSection <- div(
                      ),
                      
                      #line size for error bar
-                     # uiOutput("UiErrorBarLineSize"), 
                      #mean for histogram
                      uiOutput("UiHistMean"),
                      #variables for group mean
@@ -376,10 +336,6 @@ mainSection <- div(
                      ),
                      uiOutput("UiHistMeanSize"),
                      #ui for density
-                     # fluidRow(
-                     #   column(6, uiOutput("UiDensityKernel")),
-                     #   column(6, uiOutput("UiDensityStat"))
-                     # ),
                      conditionalPanel(condition = "input.plotType === 'density'",
                                       fluidRow(
                                         column(6, {
@@ -406,13 +362,7 @@ mainSection <- div(
                                       ),
                      ),
                      
-                     # fluidRow(
-                     #   column(6, uiOutput("UiDensityBandwidth")),
-                     #   column(6, uiOutput("UiDensityAdjust")),
-                     # ),
-                     
                      #option for theme
-                     # uiOutput("UiTheme"),
                      conditionalPanel(condition = "input.plotType !== 'none'",
                                       selectInput(inputId = "theme", label = "Background theme", choices = c("default", sort(c( "dark","grey", "white", "white with grid lines","blank", "minimal"))), selected = "default") 
                      ),
@@ -429,14 +379,12 @@ mainSection <- div(
                        # uiOutput("UiColorSet"),
                        selectInput(inputId = "colorSet", label = "Add color", choices = list("none")),
                        
-                       # uiOutput("uiAutoCustome"),
                        #option to provide color 
                        #provide option to auto fill the color or customize it
                        conditionalPanel(condition = "input.colorSet !== 'none'",
                                         radioButtons("autoCustome", label = NULL, choices = c("auto filled","customize"), selected = "auto filled")
                        ),
                        #ui for entering color
-                       # uiOutput("UiColorAdd"),
                        conditionalPanel(condition = "input.colorSet !== 'none' && input.autoCustome == 'customize'",
                                         textAreaInput(inputId = "colorAdd", label = "Enter colors",
                                                       placeholder = "comma or space separated. \nE.g. red, #cc0000, BLUE")
@@ -450,13 +398,8 @@ mainSection <- div(
                                           }),
                                           column(6, sliderInput(inputId = "alpha", label = "Transparency", min = 0.01, max = 1, value = 1))
                                         )),
-                       # fluidRow(
-                       #   column(6, uiOutput("UiDensityPosition")),
-                       #   column(6, uiOutput("UiAlpha"))
-                       # ),
                        
                        #ui for adding shape and linetype
-                       # uiOutput("UiShapeLine"),
                        conditionalPanel(condition = "input.plotType !== ''",
                                         checkboxGroupInput(inputId = "shapeLine", label = "Add more aesthetic", choices = c("Shape", "Line type"), inline = TRUE)
                        ),
@@ -472,8 +415,6 @@ mainSection <- div(
               column(6,
                      #setting for statistical computing
                      #ui for stat method
-                     #blankUi("forSignif", 4)
-                     # uiOutput("UiStatMethod"),
                      selectInput(inputId = "stat", label = "Statistical method", choices = "none"),
                      #ui alert message for t-test
                      uiOutput("UiTtestAlert"),
@@ -533,16 +474,7 @@ mainSection <- div(
                                         ),
                                         #ui for anova error alert
                                         uiOutput("UiAnovaErrorAlert"),
-                                        # #sum of square type for anova
-                                        # conditionalPanel(condition = "input.stat == 'anova' && input.pairedData == 'one'",
-                                        #                  {er_lst <- list(tags$span("I", style = "font-weight:bold; color:#0099e6"), 
-                                        #                                  tags$span("II", style = "font-weight:bold; color:#0099e6"),
-                                        #                                  tags$span("III", style = "font-weight:bold; color:#0099e6"))
-                                        #                  # selectInput(inputId = "ssType", label = "Error type",
-                                        #                  #              choice = c(1,2,3), selected = 2)
-                                        #                  radioButtons(inputId = "ssType", label = "Type of sum of squares", inline = TRUE,
-                                        #                               choiceNames = er_lst, choiceValues = list(1, 2, 3), selected = 2)
-                                        #                  }),
+                                        #sum of square type for anova
                                         #Ui for anova figure:
                                         uiOutput("UiAnovaFigure"),
                                         # #Ui for color of anova. Different from the general colorSet
@@ -566,7 +498,6 @@ mainSection <- div(
                                           ),
                                           
                                           #ui for p adjust method
-                                          # column(7, uiOutput("UiChooseSignifMethod"))
                                           column(7, conditionalPanel(condition = "input.choosePFormat == true && input.stat != 'anova'",
                                                                      {
                                                                        pMethod <- c("holm", "hochberg", "hommel", "bonferroni", "BH", "BY", "fdr") 
@@ -576,7 +507,6 @@ mainSection <- div(
                                           
                                         ),
                                         #ui for display label
-                                        # uiOutput("UiChooseSignifLabel"),  #value or symbol (*, **, ***)
                                         conditionalPanel(condition = "input.stat != 'anova' && input.stat != 'kuskal-wallis'",
                                                          {
                                                            choiceList <- list(tags$span("value", style = "font-weight:bold; color:#0099e6"), tags$span("symbol", style = "font-weight:bold; color:#0099e6"))
@@ -741,9 +671,8 @@ mainSection <- div(
                                    ),
                                    column(3, 
                                           fluidRow(
-                                            dropdownButton(inputId = "filterData", label = tags$b("Filter", style="color:#C622FA"), circle = FALSE, size = "default", tooltip = tooltipOptions(title = "Filter the input data", placement = "bottom"), icon = icon("sliders"),
+                                            dropdownButton(inputId = "filterData", width = "400px", label = tags$b("Filter", style="color:#C622FA"), circle = FALSE, size = "default", tooltip = tooltipOptions(title = "Filter the input data", placement = "bottom"), icon = icon("sliders"),
                                                            # dropdown(inputId = "filterData",  label = tags$b("Filter", style="color:#C622FA"), circle = FALSE, size = "sm", tooltip = tooltipOptions(title = "Filter the input data", placement = "bottom"), icon = icon("sliders"),
-                                                           style = "minimal",      
                                                            jqui_draggable(
                                                              div(
                                                                class = "filterDataDiv",
@@ -764,7 +693,7 @@ mainSection <- div(
                                                                # uiOutput("UiFilterMsgGeneral"),
                                                                conditionalPanel(condition = "input.varFilterOpts != ''",
                                                                                 helpText(list(tags$p("Note:", style = "font-style:italic; font-weigth:bold;"), tags$p("1. Numeric variable: provide only one numeric value. To filter 'between', enter two values separated by colon - e.g., 10:34"),
-                                                                                              tags$p('2. Non-numeric variable: allow multiple values separated by comma. Use double quotes (""), if space or comma is included in the value')), style = "text-align:left")
+                                                                                              tags$p('2. Non-numeric variable: allow multiple values separated by comma (not space!). Use double quotes (""), if space or comma is included in the value')), style = "text-align:left")
                                                                ),
                                                                
                                                                # actionBttn(inputId = "applyFilter", label = "Apply filter", block = TRUE, size = "md")
@@ -959,15 +888,8 @@ mainSection <- div(
                                  column(6, textAreaInput(inputId = "xLable", label = "Enter title for X-axis", height = "35px"))
                                )
               ),
-              # column(6, uiOutput("uiTitleSize")),
-              # column(6, uiOutput("uiTextSize")),
-              # fluidRow(
-              #   column(6, uiOutput("uiYlable")),
-              #   column(6, uiOutput("uiXlable")),
-              # ),
               
               #ui for legend
-              # fluidRow(
               conditionalPanel(condition = "input.plotType != 'none' && (input.colorSet != 'none' || (input.shapeLine == 'Shape' || input.shapeLine == 'Line type'))",
                                fluidRow(
                                  
@@ -983,17 +905,6 @@ mainSection <- div(
                                  )
                                )
               ),
-              # fluidRow(
-              #   
-              #   #position
-              #   column(3, uiOutput("UiLegendPosition")),
-              #   #direction
-              #   column(3, uiOutput("UiLegendDirection")),
-              #   #font size
-              #   column(3,uiOutput("UiLegendSize")),
-              #   #Legend title on & off
-              #   column(3, uiOutput("UiLegendTitle"))
-              # ),
               
               fluidRow(
                 # uiOutput("UiPlabelSize"),
@@ -1056,13 +967,6 @@ mainSection <- div(
                    selectInput(inputId = "statSumDownList", label = NULL, choices = list(Report = c("Report", ""), Table = c("Table",""), Figure = c("Figure","")), selected = "Report", width = "100px"),
                    bsTooltip(id = "statSumDownList", title = "Downloadable list of statistic summary", placement = "top", trigger = "hover", options = list(container = "body"))
                    
-                   # #download options : report, table or graph
-                   # output$UiStatSumDownList <- renderUI({
-                   #   
-                   #   optList <- list(Report = c("Report", ""), Table = c("Table",""), Figure = c("Figure",""))
-                   #   
-                   #   selectInput(inputId = "statSumDownList", label = NULL, choices = optList, selected = "Report", width = "100px")
-                   # })
             ),
             column(2,
                    downloadButton(outputId = "downloadStatSummary", class = "btn-info btn-l")
@@ -1078,7 +982,6 @@ mainSection <- div(
         helpText("Table 1. summary of the input data", style = "margin-top:30px; margin-bottom:0; font-weight:bold; font-size:20px"),
         #Ui for data summary
         verbatimTextOutput("UiDataSummary"), #show summary of all the data
-        # textOutput("statSummaryText"),
         #ui for descriptive statistics
         uiOutput("UiDescriptiveTableCaption"),
         reactableOutput("UiDescriptiveTable"),
@@ -1167,7 +1070,6 @@ helpSection <- div(includeHTML("www/plotS_help.html"))
 ui <- fluidPage(
   #link to CSS----------------
   includeCSS("www/uiStyle.css"),
-  #link: https://stackoverflow.com/questions/27965931/tooltip-when-you-mouseover-a-ggplot-on-shiny
   #small script for displaying info when mouse hover in the graph
   tags$script('
     $(document).ready(function(){
@@ -1216,8 +1118,6 @@ ui <- fluidPage(
 server <- function(input, output, session){
   
   #preview--------------
-  
-  
   observeEvent(isTruthy(input$previewFigure),{
     output$previewOutput <- renderPlot(saveFigure())
   })
@@ -1427,73 +1327,7 @@ server <- function(input, output, session){
     }
   })
   
-  # #stop here--------------------------
-  # #update the replicate columns
-  # #total column name of the input table
-  # totalCol <- reactiveVal({ c(1,2,3,4) })# req(pInputTable$data); ncol(pInputTable$data)})
-  # usedCol <- reactiveVal(NULL)
-  # unusedCol <- reactiveVal(NULL)
-  # iterate <- 0 #for-loop iteration
-  # observe({
-  #   # browser()
-  #   for(i in 1:as.numeric(req(input$dataVariables))){
-  #     message(i)
-  #     req(eval(str2expression(paste0("input$Variable",i,"R"))))
-  #     # if( isTruthy( eval(str2expression(paste0("input$Variable",i,"R"))) ) ){}
-  #     message(eval(str2expression(paste0("input$Variable",i,"R"))))
-  #     usedCol( as.numeric(eval(str2expression(paste0("input$Variable",i,"R")))) )
-  #     unusedCol( totalCol()[ which(!totalCol() %in% usedCol()) ] )
-  #     if(i > 1){
-  #       updateSelectInput(inputId = paste0("Variable", i,"R"), choices = unusedCol())
-  #       usedCol(unusedCol())
-  #       unusedCol( totalCol()[ which(!totalCol() %in% usedCol()) ] )
-  #     }else if(i == as.numeric(req(input$dataVariables))){
-  #       updateSelectInput(inputId = paste0("Variable", i,"R"), choices = unusedCol())
-  #       break
-  #     }
-  #   }
-  #   
-  #   
-  #   message("print")
-  #   # #if the option given in nR (upper select option) is choosen, than update the lower option n-1R:
-  #   # for(i in 1:as.numeric(input$dataVariables)){
-  #   #   
-  #   # }
-  #   # if(isTruthy(eval(str2expression("input$Variable1R")))){
-  #   #   
-  #   # }
-  # })
-  # #stop here--------------------------
   
-  # observe({
-  #   req(pInputTable_orig(), input$replicatePresent == "yes")
-  #   
-  #     
-  #   if(input$replicatePresent == "yes" && req(as.numeric(input$headerNumber)) != 0){
-  #     
-  #     data <- pInputTable$data %>% as.data.frame()
-  #     #it is expected that data with replicates will have more than one header
-  #     nh <- as.numeric(input$headerNumber)
-  #     nVar <- getDataVariable(x= data , nh = nh, re=1)
-  #     varTable <- getDataVariable(x= data, nh = nh, re=2)
-  #   }else{
-  #     #In case when data with replicates have only one header
-  #     nVar <- 1
-  #     varTable <- data.frame( number = (ncol(pInputTable$data) - 1) )
-  #   }
-  #   
-  #   
-  #   if(input$replicatePresent == "yes"){
-  #     
-  #     updateSelectInput(inputId = "dataVariables", #Number of group/variables
-  #                 choices = c(1:max(varTable$number)), selected = nVar)
-  #     # addTooltip(session = session, id = "dataVariables", title = "Specify the number of groups/variables to group the replicates", placement = "bottom", trigger = "hover", options = list(container = "body"))
-  #   }
-  #   
-  #   
-  # })
-  
-  #old
   observe({
     req(pInputTable_orig(), input$replicatePresent == "yes")
     
@@ -2675,13 +2509,6 @@ server <- function(input, output, session){
     updateSelectInput(inputId = "plotType", label = "Choose type of plot",
                       choices = c("none",sort(plotList)), selected = "none")
   })
-  # observe({
-  #   req(input$replicatePresent, input$transform)
-  #   if( isTRUE(dataChanged()) || isTruthy(input$replicateActionButton) || isTruthy(input$goAction) ) {
-  #     updateSelectInput(inputId = "plotType", label = "Choose type of plot",
-  #                       choices = c("none",sort(plotList)), selected = "none")
-  #   }
-  # })
   
   #reactive plot type
   pltType <- reactive({
@@ -2780,12 +2607,6 @@ server <- function(input, output, session){
       updateSelectInput(inputId = "xAxis", label = "X-axis", choices = colnames(ptable()), selected = xVarFilter())
     }
   })
-  # #msg to provide numeric variable for y-axis
-  # output$UiYAxisMsg <- renderUI({
-  #   if(req(pltType() %in% xyRequire || isTRUE(needYAxis()))){
-  #     helpText("Provide numeric variable to y-axis", style = "text-align:center; margin-top:0")
-  #   }
-  # })
   
   #get the selected variables of axes from the data
   xVar <- reactive({
@@ -2820,17 +2641,6 @@ server <- function(input, output, session){
     updateSliderInput(inputId = "titleSize", min = 10, max = 50, value = 15)
     updateTextAreaInput(inputId = "yLable", value = character(0))
     updateTextAreaInput(inputId = "xLable", value = character(0))
-    
-    
-    # output$uiTextSize <- renderUI({if( req(input$plotType) != "none" ) sliderInput(inputId = "textSize", label = "Axis text font size", min = 10, max = 50, value = 15)})
-    # output$uiTitleSize <- renderUI({if( req(input$plotType) != "none" ) sliderInput(inputId = "titleSize", label = "Axis title font size", min = 10, max = 50, value = 15)})
-    # output$uiYlable <- renderUI({if( req(input$plotType) != "none" )textAreaInput(inputId = "yLable", label = "Enter title for Y-axis", height = "35px")})
-    # output$uiXlable <- renderUI({if( req(input$plotType) != "none" )textAreaInput(inputId = "xLable", label = "Enter title for X-axis", height = "35px")})
-    # output$uiBinWidth <- renderUI({
-    #   req(input$plotType, xVarType())
-    #   if(input$plotType %in% c("histogram", "frequency polygon") & xVarType()[1] %in% c("integer", "numeric", "double")) sliderInput(inputId = "binWidth", label = "Adjust bin width", min = 0.01, max = 100, value = 30)
-    # })
-    
   })
   
   output$uiBinWidth <- renderUI({
@@ -2845,26 +2655,18 @@ server <- function(input, output, session){
     validate(
       need(input$xAxis %in% colnames(ptable()), "Wait!")
     )
-    #x-axis must not be numeric
-    # req(!xVarType()[1] %in% c("integer", "numeric", "double"))
+    
     #get number of variables in x-axis
     x <- req(input$xAxis)
-    # cVar <- ptable() %>% distinct(.data[[x]]) %>% as.data.frame() %>% as.vector()
     cVar <- if(!xVarType()[1] %in% c("integer", "numeric", "double")){
       c(All="All", ptable() %>% distinct(.data[[x]]) %>% as.data.frame() %>% as.vector())
     }else{
       "none"
     }
-    # cVar <- unique(ptable()[,x]) %>% as.character() %>% as.list()#this will avoid issue with factor variable
-    # output$uiXAxisTextLabelChoice <- renderUI({
-    #   if( req(input$plotType) != "none" ){
-    #     selectInput(inputId = "xTextLabelChoice", label = "Change name for", choices = c(All="All", cVar), selected = "ALL", multiple = TRUE)
-    #   }
-    # })
+    
     #update option
     updateSelectInput(inputId = "xTextLabelChoice", label = "Change name for", choices = c(cVar), selected = "ALL")
-    # addTooltip(session, id = "xTextLabelChoice", title = "Applicable only when the x-axis is non-numeric",  trigger = "hover", options = list(container = "body"))
-    # addTooltip(session, id = "xTextLabelChoice", title = "Applicable only when the x-axis is non-numeric",  trigger = "hover", options = list(container = "body"))
+    
     output$uiXAxisTextLabel <- renderUI({
       
       #x-axis must not be numeric
@@ -2872,8 +2674,6 @@ server <- function(input, output, session){
       
       if( req(input$plotType) != "none" ){
         # browser()
-        # message(str(input$xTextLabelChoice))
-        # message(str(cVar))
         if(req(input$xTextLabelChoice) == "All" || "All" %in% req(input$xTextLabelChoice)){
           nVar <- ptable() %>% distinct(.data[[x]]) %>% as.data.frame() %>% nrow() #nrow(cVar)
         }else{
@@ -2915,18 +2715,6 @@ server <- function(input, output, session){
   })
   
   #Bar graph settings---------------------
-  # output$UiStackDodge <- renderUI({
-  #   #Bar plot and histogram will have this option
-  #   #this will be updated when user request for error bar in bar plot, but not for histogram
-  #   req(refresh_3(), pltType(), xVar())
-  #   choices <- list(tags$span("Stack", style = "font-weight:bold; color:#0099e6"), 
-  #                   tags$span("Dodge", style = "font-weight:bold; color:#0099e6"))
-  #   if(pltType() %in% c("bar plot", "histogram")){
-  #     radioButtons(inputId = "stackDodge", label = "Bar position", choiceNames = choices, choiceValues = list("Stack", "Dodge"), inline = TRUE)
-  #   }
-  # })
-  
-  
   
   #Line graph settings---------------
   # #show option to connect the path within: check below
@@ -2944,10 +2732,6 @@ server <- function(input, output, session){
     req(is.data.frame(ptable()), input$plotType %in% c("line", "bar plot", "scatter plot", "violin plot"))
     updateCheckboxInput(inputId = "lineErrorBar", label = NULL, value = FALSE) #tags$("Add error bar", style = "color:#b30000; font-weight:bold; background:#f7f3f3"))
   })
-  # output$UiLineErrorBar <- renderUI({
-  #   req(refresh_3(), pltType() != "none")
-  #   if(pltType() %in% c("line", "bar plot", "scatter plot", "violin plot") && (isTruthy(xVar())|| isTruthy(yVar())) ) checkboxInput(inputId = "lineErrorBar", label = tags$span("Add error bar", style = "color:#b30000; font-weight:bold; background:#f7f3f3"))
-  # })
   
   observe({
     req(is.data.frame(ptable()), isTruthy(input$lineErrorBar))
@@ -2988,22 +2772,6 @@ server <- function(input, output, session){
     }
   })
   
-  # #update ci, se and sd
-  # observe({
-  #   req(pltType() != "none", isTruthy(input$lineErrorBar), input$errorBarStat)
-  #   
-  #     choic <- list(tags$span("No", style = "font-weight:bold; color:#0099e6"),
-  #                   tags$span("Yes", style = "font-weight:bold; color:#0099e6"))
-  #     
-  #     if(input$errorBarStat == "Standard error (SE)"){
-  #       updateRadioButtons(inputId = "lineComputeSd", label = "Auto compute SE?", choiceNames = choic, choiceValues = c("no","yes"), selected = "no", inline = TRUE)
-  #     }else if(input$errorBarStat == 'Standard deviation (SD)'){
-  #       updateRadioButtons(inputId = "lineComputeSd", label = "Auto compute SD?", choiceNames = choic, choiceValues = c("no","yes"), selected = "no", inline = TRUE)
-  #     }else{
-  #       updateRadioButtons(inputId = "lineComputeSd", label = "Auto compute CI?", choiceNames = choic, choiceValues = c("no","yes"), selected = "no", inline = TRUE)
-  #     }
-  # })
-  # 
   
   #display error message for SD
   sdError <- 0
@@ -3227,34 +2995,7 @@ server <- function(input, output, session){
   })
   
   
-  #scatter plot:----------------------------
-  # #add jitter
-  # output$UiJitter <- renderUI({
-  #   req(refresh_2(), pltType())
-  #   if(pltType() == "scatter plot") checkboxInput(inputId = "jitter", label = tags$span("Handle overplotting (jitter)", style = "font-weight:bold; color:#b30000; background:#f7f3f3"))
-  # })
-  #Density-----------------------------------
-  # kde <- c("gaussian", "epanechnikov", "rectangular", "triangular", "biweight", "cosine", "optcosine")
-  # output$UiDensityKernel <- renderUI({
-  #   req(refresh_3(), pltType())
-  #   if(pltType() == "density") selectInput(inputId = "densityKernel", label = "Kernel\ndensity", choices = sort(kde), selected = "gaussian")
-  # })
-  # 
-  # output$UiDensityStat <- renderUI({
-  #   req(refresh_3(), pltType())
-  #   
-  #   if(pltType() == "density") selectInput(inputId = "densityStat", label = "Computed\n stat", choices = sort(computes), selected = "density")
-  # })
-  
-  # output$UiDensityBandwidth <- renderUI({
-  #   req(refresh_3(), pltType())
-  #   binwd <- c("nrd0","nrd", "ucv","bcv","SJ-ste","SJ-dpi")
-  #   if(pltType() == "density") selectInput(inputId = "densityBandwidth", label = "Bandwidth (bw)", choices = sort(binwd), selected = "nrd0")
-  # })
-  # output$UiDensityAdjust <- renderUI({
-  #   req(refresh_3(), pltType())
-  #   if(pltType() == "density") sliderInput(inputId = "densityAdjust", label = "Adjust bw", min = 1, max = 20, value = 1)
-  # })
+
   #update the density parameters, theme with change in plot type
   observe({
     req(pltType())
@@ -3270,12 +3011,7 @@ server <- function(input, output, session){
     #theme
     updateSelectInput(inputId = "theme", label = "Background theme", choices = c("default", sort(c( "dark", "grey", "white", "white with grid lines","blank", "minimal"))), selected = "default") 
   })
-  # #theme for plot
-  # output$UiTheme <- renderUI({
-  #   if(isTruthy(input$plotType)){
-  #     selectInput(inputId = "theme", label = "Background theme", choices = c("default", "dark", "white", "white with grid lines","blank"), selected = "default") 
-  #   }
-  # })
+
   #update density position
   observe({
     req(input$plotType, input$colorSet)
@@ -3335,40 +3071,13 @@ server <- function(input, output, session){
     }
   })
   
-  # output$UiColorSet <- renderUI({
-  #   req(refresh_2())
-  #   #This will be updated based on the type of ANOVA, if required
-  #   displayAes(update = "yes", transform = transformation(), action = action(), pltType = pltType(),
-  #              data = ptable(), label= "Add color", newId = "colorSet", choice = varColorChoice()) #selecteds = selectedChoice()
-  # })
   #update color option when plot type is choosen
   observe({
     req(pltType())
     selectInputParam(update = TRUE, pltType = pltType(),
                      data = ptable(), label= "Add color", newId = "colorSet", choice = varColorChoice()) 
   })
-  # #update color if the input feature change
-  # observe({
-  #   req(input$replicatePresent, input$transform)
-  #   if( isTRUE(dataChanged()) || isTruthy(input$replicateActionButton) || isTruthy(input$goAction) ){
-  #     selectInputParam(update = TRUE, pltType = pltType(),
-  #                data = ptable(), label= "Add color", newId = "colorSet", choice = varColorChoice()) 
-  #   }
-  # })
-  # observe({
-  #   req(input$replicatePresent, input$transform)
-  #   if( isTRUE(dataChanged()) || isTruthy(input$replicateActionButton) || isTruthy(input$goAction) ){
-  #     displayAes(update = "yes", transform = transformation(), action = action(), pltType = pltType(),
-  #                data = ptable(), label= "Add color", newId = "colorSet", choice = varColorChoice()) 
-  #   }
-  # })
   
-  # #option to provide color 
-  # #provide option to auto fill the color or customize it
-  # output$uiAutoCustome <- renderUI(
-  #   if(req(input$colorSet) != "none"){
-  #     radioButtons("autoCustome", label = NULL, choices = c("auto filled","customize"), selected = "auto filled")
-  #   })
   #update auto and custome options
   observe({
     if(req(input$colorSet) != "none"){
@@ -3388,29 +3097,7 @@ server <- function(input, output, session){
     
   })
   
-  # #color and fill for histogram----------------
-  # #above option to add color and histogram color setting will be mutually exclusive
-  # observeEvent(req(pltType() %in% c("histogram"), input$colorSet == "none"),{
-  #   output$UiHistBarColor <- renderUI({
-  #     if(pltType() %in% c("histogram") & input$colorSet == "none") textInput(inputId = "histBarColor", label = "Bar color", placeholder = "red or #ff0000")
-  #   })
-  #   output$UiHistBarFill <- renderUI({
-  #     if(pltType() %in% c("histogram") & input$colorSet == "none") textInput(inputId = "histBarFill", label = "Fill bar", placeholder = "blue or #b3d9ff")
-  #   })
-  # })
-  #shape and line-----------------
-  #shapeExcluded <- c("histogram", "frequency polygon", "line", "scatter plot")
-  # shapeLineOption <- reactive({
-  #   if(req(pltType()) %in% c("scatter plot")){
-  #     # list(tags$span("Shape", style = "font-weight:bold; color:#0099e6"))
-  #     c("Shape")
-  #   }else if(req(pltType()) %in% c(  "box plot","violin plot", "bar plot", "histogram", "frequency polygon", "line", "density")){
-  #     #remove shape for histogram, frequency polygon, line
-  #     c("Line type")
-  #   }else{
-  #     c("Shape", "Line type")
-  #   }
-  # })
+  
   #update shapeline
   observe({
     req(input$plotType, input$stat)
@@ -3427,10 +3114,7 @@ server <- function(input, output, session){
     })
     updateCheckboxGroupInput(inputId = "shapeLine", label = "Add more aesthetic", choices = shapeLineOption(), inline = TRUE)
   })
-  # output$UiShapeLine <- renderUI({
-  #   req(refresh_2(), pltType(), input$stat)
-  #   checkboxGroupInput(inputId = "shapeLine", label = "Add more aesthetic", choices = shapeLineOption(), inline = TRUE)
-  # })
+  
   #update shapeLine if input parameters for data changed
   observe({
     req(input$replicatePresent, input$transform, pltType())
@@ -3514,8 +3198,6 @@ server <- function(input, output, session){
         #-message("update lineSet2")
         selectInputParam(update = TRUE, pltType = input$plotType, data = ptable(), label = "Variable for line type", 
                          newId = "lineSet", firstChoice = NULL, choice = c(colnames(xVar()), input$colorSet), selected= input$colorSet )
-        # displayAes(update = "yes", transform = transformation(), action = action(), pltType = pltType(),
-        #            data = ptable(), label = "Variable for line type", newId = "lineSet", firstChoice = NULL, choice = c(colnames(xVar()), input$colorSet), selected= input$colorSet )
       }
       
     }
@@ -3535,13 +3217,6 @@ server <- function(input, output, session){
     req(input$plotType, input$stat)
     if(input$plotType != "none" && input$stat != "none") updateSliderInput(inputId = "plabelSize", min = 1, max = 15, value = 7)
   })
-  # observe({
-  #   req(ptable(), pltType(), input$stat)
-  #   output$UiPlabelSize <- renderUI({
-  #     # val <- if(input$stat %in% c("anova", "kruskal-wallis")){7}else{15}
-  #     if(pltType() != "none" && input$stat != "none") sliderInput(inputId = "plabelSize", label = "Adjust p-value label size", min = 1, max = 15, value = 7)
-  #   })
-  # })
   
   #Miscellaneous settings--------------------
   #bracket
@@ -3610,104 +3285,7 @@ server <- function(input, output, session){
   
   #t-test and wilcoxon: open alert message so that user can proceed or cancel the computation-----------
   #this is require to save memory
-  # stopTest <- reactiveVal({
-  #   #1 = stop (default); 0 = continue; 
-  #   if(req(input$colorSet) == 'none' && !isTruthy(input$shapeLine)){
-  #     #check variable count
-  #     countVar <- ptable() %>% distinct(.data[[req(input$xAxis)]]) %>% nrow()
-  #   }else if(req(input$colorSet) != 'none'){
-  #     countVar <- ptable() %>% distinct(.data[[req(input$xAxis)]], .data[[input$colorSet]]) %>% nrow()
-  #   }
-  #   
-  #   ifelse(countVar > 2, 1, 0)
-  # })
   
-  # observe({
-  #   req(ptable(), pltType() != "none", input$stat %in% c("t.test", "wilcoxon.test"))
-  #   #1 = stop (default); 0 = continue; 
-  #   req(input$xAxis %in% colnames(ptable()))
-  #   # default: (req(input$colorSet) == 'none' && !isTruthy(input$shapeLine)){
-  #   #check variable count
-  #   countVar <- ptable() %>% distinct(.data[[req(input$xAxis)]]) %>% nrow()
-  #   
-  #   if(req(input$colorSet) != 'none'){
-  #     countVar <- ptable() %>% distinct(.data[[req(input$xAxis)]], .data[[input$colorSet]]) %>% nrow()
-  #   }else if(req(input$colorSet) == 'none' && isTruthy(input$shapeLine)){
-  #     if(input$shapeLine == "Shape"){
-  #       countVar <- ptable() %>% distinct(.data[[input$xAxis]], .data[[req(input$shapeSet)]]) %>% nrow()
-  #     }else if(input$shapeLine == "Line type"){
-  #       countVar <- ptable() %>% distinct(.data[[input$xAxis]], .data[[req(input$lineSet)]]) %>% nrow()
-  #     }
-  #     
-  #   }
-  #   browser()
-  #   stopTest(ifelse(countVar > 2, 1, 0))
-  #   message(stopTest())
-  #   
-  # })
-  
-  # #base R for alert: modelDialog()--------------------------
-  # observeEvent({
-  #   req(input$stat %in% c("t.test", "wilcoxon.test"))},{
-  #     
-  #     if(req(input$colorSet) == 'none' && !isTruthy(input$shapeLine)){
-  #       #check variable count
-  #       countVar <- ptable() %>% distinct(.data[[input$xAxis]]) %>% nrow()
-  #     }else if(req(input$colorSet) != 'none'){
-  #       countVar <- ptable() %>% distinct(.data[[input$xAxis]], .data[[input$colorSet]]) %>% nrow()
-  #     }
-  #     
-  #     req(countVar > 2)
-  #     # shinyalert(
-  #     #   inputId = "tw_alert",
-  #     #   title = "Message", #tags$b("Alert!", style = "color:red"),
-  #     #   html = TRUE,
-  #     #   text = tags$b("Data has more than 2 variables to compare. ANOVA may be more appropriate. \n
-  #     #           Continue anyway (slower computation)?", style = "color:red;"),
-  #     #   type = "warning",
-  #     #   closeOnClickOutside = TRUE,
-  #     #   showCancelButton = TRUE,
-  #     #   showConfirmButton = TRUE,
-  #     #   # confirmButtonText = "No", #value : TRUE
-  #     #   # confirmButtonCol = "#EE2B04",
-  #     #   # cancelButtonText = "Yes", #value : FALSE
-  #     #   # cancelButtonCol = "#EE2B04",
-  #     #   animation = "pop",
-  #     #   immediate = TRUE
-  #     # )
-  #   # not useful for my purpose:  can't adjust the position
-  #   showModal(
-  #     # div(
-  #       # class = "testAlertDiv",
-  #       # style = "position:absolute; margin:auto; top: 50%;",
-  #       # style ="background-color:red",
-  #       # style = "display:flex; justify-content:center; align-items:center; margin:auto; top: 50%;",
-  #       draggableModalDialog(
-  #         tags$b("Data has more than 2 variables to compare. ANOVA may be more appropriate.
-  #         Continue anyway (slower computation)?"),
-  #         title = tags$b("Alert!", style = "color:red; text-align:center;"),
-  #         footer = tagList(
-  #           actionButton("test_stop", "No"),
-  #           actionButton("test_continue", "Yes", class = "btn btn-danger")
-  #         )
-  #       )
-  # 
-  #     )
-  # })
-  # 
-  # observeEvent(input$test_stop,{
-  #   #if test_stop is no, update the stat
-  #   updateSelectInput(inputId = "stat", choices = c("none",statMethods), selected = "none")
-  #   # stopTest(1)
-  #   removeModal()
-  # })
-  # 
-  # observeEvent(input$test_continue,{
-  #   stopTest(0)
-  #   removeModal()
-  # })
-  # 
-  # #base R for alert: modelDialog()--------------------------
   #default: stop test -> activate this only after alerting the user
   stopTest <- reactiveVal(1)
   #alert message for t-test: same as modelDialog(), but more easier to implement
@@ -3767,17 +3345,7 @@ server <- function(input, output, session){
     req(input$plotType, input$stat)
     stopTest(1)
   })
-  # observeEvent(req(isTRUE(input$tw_alert)),{
-  #   updateSelectInput(inputId = "stat", choices = c("none",statMethods), selected = "none")
-  # })
-  # 
-  # observeEvent(req(isFALSE(input$tw_alert)),{
-  #   stopTest(0)
-  # })
   
-  # observeEvent(input$stat, {
-  #   stopTest(1) #default is stop processing
-  # })
   # #update stat method--------------------------------
   #update stat if input parameters for data changed
   observe({
@@ -3804,15 +3372,7 @@ server <- function(input, output, session){
     req(input$stat)
     updateRadioButtons(inputId = "ttestMethod", label = "Test method", choiceNames = choices, choiceValues = c("welch", "student"))
   })
-  # output$UiTtestMethod <- renderUI({
-  #   req(input$stat == "t.test")
-  #   choices <- list(tags$span("Welch's test", style = "font-weight:bold; color:#0099e6"), 
-  #                   tags$span("Student's test", style = "font-weight:bold; color:#0099e6"))
-  #   if(input$stat == "t.test"){
-  #     radioButtons(inputId = "ttestMethod", label = "Test method", choiceNames = choices, choiceValues = c("welch", "student"), inline = FALSE)
-  #   }
-  #   
-  # })
+ 
   #data (paired or unpaired) and ANOVA type (one-way or two-way)
   unpaired_stopTest <- reactiveVal("no") #no means data is unpaired, but user used as paired. So stop executing the t-test
   observe({
@@ -3887,18 +3447,6 @@ server <- function(input, output, session){
     #Choosing the variable may require to update the aesthetic parameters
     #So, update the aethetic paramters again.
   })
-  # output$UiTwoAovVar <- renderUI({
-  #   req(refresh_2(), ptable(), pltType() != "none", input$stat == "anova", input$pairedData == "two")
-  #   #default variable for computing two-way anova: must not be equal with the variable of x-axis
-  #   varSel <- selectedVar2(data = ptable(), check = "character", index=2)
-  #   #get the variable list from the table other than the variables of x- and y-axis
-  #   colList <- ptable()[!colnames(ptable()) %in% c(colnames(yVar()), colnames(xVar()))]
-  # 
-  #   selectInput(inputId = "twoAovVar", label = "Choose the other independent variable",
-  #               choices = colnames(colList), selected = varSel)
-  #   #Choosing the variable may require to update the aesthetic parameters
-  #   #So, update the aethetic paramters again.
-  # })
   
   
   #anova Figure--------------------
@@ -3920,10 +3468,7 @@ server <- function(input, output, session){
     req(input$stat == "anova", input$pairedData)
     updateRadioButtons(inputId = "anovaAutoCust", label = "Color", choices = c("auto filled","customize"), selected = "auto filled")
   })
-  # output$UiAnovaAutoCust <- renderUI(
-  #   if(req(input$stat == "anova") && req(input$pairedData == "two") && req(input$anovaFigure) != "Interaction"){
-  #     radioButtons("anovaAutoCust", label = "Color", choices = c("auto filled","customize"), selected = "auto filled")
-  #   })
+ 
   #if customize is selected than provide option to add colors
   output$UiAnovaAddColor <- renderUI({
     req(input$anovaAutoCust)
@@ -4077,33 +3622,14 @@ server <- function(input, output, session){
     req(isTruthy(input$choosePFormat))
     updateSelectInput(inputId = "signifMethod", label = NULL, choices = sort(pMethod), selected = "bonferroni")
   })
-  # output$UiChooseSignif <- renderUI({
-  #   req(refresh_2(), input$stat != "none")
-  #   if(!input$stat %in% c("anova")){
-  #     checkboxInput(inputId = "choosePFormat", label = tags$span("p.adjust", style = "background:#f7f3f3; font-weight:bold; color:black"),value = TRUE)
-  #   }
-  # })
-  #p.adjust method
-  # output$UiChooseSignifMethod <- renderUI({
-  #   pMethod <- c("holm", "hochberg", "hommel", "bonferroni", "BH", "BY", "fdr") 
-  #   if(req(!input$stat %in% c("none", "anova"), isTruthy(input$choosePFormat))){
-  #     selectInput(inputId = "signifMethod", label = NULL, choices = sort(pMethod), selected = "bonferroni")
-  #   }
-  # })
+  
   
   #update label for p value
   observe({
     req(!input$stat %in% c("anova", "kruskal-wallis"))
     updateRadioButtons(inputId = "choosePLabel", label = NULL, choiceNames = choiceList, choiceValues = c("p.adj","p.adj.signif"), selected = "p.adj", inline = TRUE)
   })
-  # output$UiChooseSignifLabel <- renderUI({
-  #   req(refresh_2(), input$stat != "none")
-  #   if(!input$stat %in% c("anova", "kruskal-wallis")){
-  #     choiceList <- list(tags$span("value", style = "font-weight:bold; color:#0099e6"), tags$span("symbol", style = "font-weight:bold; color:#0099e6"))
-  #     radioButtons(inputId = "choosePLabel", label = "Choose p label format", choiceNames = choiceList, choiceValues = c("p.adj","p.adj.signif"),
-  #                  selected = "p.adj", inline = TRUE)
-  #   }
-  # })
+  
   
   #t-test parameters----------------------------------------
   #update comparisons or reference group 
