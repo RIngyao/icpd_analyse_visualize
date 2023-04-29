@@ -111,7 +111,7 @@ reshapedDone <- NULL #used in table caption for reshaped
 barData <- NULL # bar data for stat summary: may not have implemented
 sdError <- NULL
 #function for notification-------------
-waitNotify <- function(msg = "Computing... Please wait..", id = NULL, type = "message"){
+waitNotify <- function(msg = "... Please wait..", id = NULL, type = "message"){
   showNotification(msg, id = id, duration = NULL, closeButton = FALSE, type = type)
 }
 
