@@ -63,18 +63,22 @@ library(shinyWidgets)
 # library(shinyauthr)
 
 #Objects necessary to create---------------
+#error objects
+uploadError <- reactiveVal(0) #1: stop; 0 continue
+uploadMsg <- reactiveVal(NULL)
+
 #example dataset
 long_df <- PlantGrowth
 wide_df <- structure(list(ctrl = c(4.17, 5.58, 5.18, 6.11, 4.5, 4.61, 5.17,4.53, 5.33, 5.14), 
                           trt1 = c(4.81, 4.17, 4.41, 3.59, 5.87, 3.83,6.03, 4.89, 4.32, 4.69), 
                           trt2 = c(6.31, 5.12, 5.54, 5.5, 5.37,5.29, 4.92, 6.15, 5.8, 5.26)), 
                      row.names = c(NA, -10L), class = c("data.frame"))
-replicate_df <- structure(list(...1 = c("variable", "ob1", "ob2", "ob3", "ob4", "ob5", "ob6", "ob7"), 
+replicate_df <- structure(list(new_a1 = c("variable", "ob1", "ob2", "ob3", "ob4", "ob5", "ob6", "ob7"), 
                                control = c("R1","23", "41", "24", "5", "23", "56", "23"), 
-                               ...3 = c("R2","23", "54", "65", "32", "57", "73", "42"), 
+                               new_b3 = c("R2","23", "54", "65", "32", "57", "73", "42"), 
                                treatment = c("R1", "2", "3", "4", "67", "2", "45", "24"), 
-                               ...5 = c("R2", "1", "4", "6", "32", "1", "35", "23")), class = c("data.frame"), row.names = c(NA, -7L))
-
+                               new_c5 = c("R2", "1", "4", "6", "32", "1", "35", "23")), class = c("data.frame"), row.names = c(NA, -8L))
+ 
 #plot related object--------------
 #list of graph
 planPlotList <- c("none", "box plot","bar plot", "histogram", "scatter plot",
@@ -1136,9 +1140,8 @@ tidyReplicate <- function(x, y, headerNo = 1:2, colName= "column_name", colNo = 
   # later some column may have to be converted to numeric
   # and tidied data will be appended to this data
   
-  
-  #check for addition of header by R: V1, V2, .....Vn
-  # removed the header if present. R will add header only if need (not always)
+  #may not require (updated): check for addition of header by R: V1, V2, .....Vn
+  # removed the header if present.
   if(all( str_detect(x[1,], regex("^V[:digit:]")) )){
     x <- x[-1, ]
     y <- y[-1, ] 
@@ -1174,59 +1177,24 @@ tidyReplicate <- function(x, y, headerNo = 1:2, colName= "column_name", colNo = 
           
           if(length(headerNo) == 1){
             #one header
-            if(is.na(headr[,i])){
-              #give new name
-              getName[i] <- paste0("Var",i)
-            }else{
-              getName[i] <- headr[,i]
-            }
-            
+            getName[i] <- headr[,i]
           }else{
             
-            #multiple header
-            if( all(is.na(headr[,i])) ){
-              getName[i] <- paste0("Var",i)
-            }else if( any(is.na(headr[,i])) ){
-              
-              #check whether there is any row with name for all the columns
-              # if so, use that row as column  name
-              noNaRow <- as.character()
-              for(i in headerNo){
-                if(all(!is.na(headr[i,]))){
-                  
-                  #check for one more condition: skip row that starts with ..number in more 
-                  # than one column (this are default header added while uploading data)
-                  if( any( isTRUE(str_detect(headr[i,], regex("^\\.+[:digit:]"))) ) ){
-                    next
-                  }else{
-                    noNaRow <- headr[i,]
-                  }
-                  message("noNaRow")
-                }
-              }
-              
-              if(!is_empty(noNaRow)){
-                
-                getName <- noNaRow
-              }else{
-                #remove na and get the first element
-                vec <- headr[,i]
-                naRemovedHdr <- vec[!is.na(vec)]
-                getName[i] <- naRemovedHdr[1]
-              }
-              
+            #multiple header:
+            #this works only when data has two header row
+            if(any(headr[,i] == "0") ){
+              #the first row will always have name, so use that row as column name
+              getName <- headr[1, ]
             }else{
-              #no na;  
-              # check for condition
-              #   skip row that starts with ..number  
-              #   than one column (this are default header added while uploading data)
+              #no 0;  
+              #   skip row that starts with new_a (added while uploading) or 0 
               for(n in headerNo){
-                if(any( isTRUE(str_detect(headr[n,i], regex("^\\.+[:digit:]"))) ) ){
+                if(any( str_detect( headr[n,i], regex("^new_[:alpha:][:digit:]|0") ) )){
                   next
                 }else{
-                  #get the first name
+                  #get the name
                   getName[i] <- headr[n,i] 
-                  break #get out of the nested loop
+                  break #out of the nested loop
                 }
               }
               
@@ -1258,30 +1226,14 @@ tidyReplicate <- function(x, y, headerNo = 1:2, colName= "column_name", colNo = 
   #select only the specified columns
   x2 <- x[, colNo, drop = FALSE] 
   #remove the header 
-  
   x2 <- x2[-c(headerNo),] %>% as.data.frame() 
-  
-  message("replicate selection")
   # convert to numeric
   onlyNumeric <- x2 %>% as.data.frame() %>% mutate_if(is.character, as.numeric)  #%>% as_tibble()
-  #validate whether the replicate data is in numeric, if not, than the column
-  # cannot be used as replicates. It is a categorical variable(s).
- 
-  validate(
-    need(
-        #must not contain any alphabets in the column: added here just to avoid repeated writing (not recommended)
-        all( unlist( lapply(x2, function(x) !str_detect(x, regex("[:alpha:]"))) ) ) &&
-        #must have been converted to numeric
-        all( unlist( lapply(onlyNumeric, is.numeric) ) ), "Specified replicate column(s) must be numeric!"
-        )
-  )
   
-  message("converted to numeric")
   #generate and add column names
   nn <- ncol(onlyNumeric)
-  
   colnames(onlyNumeric) <- paste0("Replicate_",1:nn)
-  message("merge")
+  
   #merge the noNumeric (character column) and onlyNumeric (replicate column)
   if(!is_empty(y) && stp == 0){
     newDf <- cbind(y_headRe, onlyNumeric) %>% as.data.frame()
@@ -1290,11 +1242,9 @@ tidyReplicate <- function(x, y, headerNo = 1:2, colName= "column_name", colNo = 
   }
   
   message("merge done3")
-  message(str(newDf))
   
   #Reshape the data: keep replicate row-wise i.e. longer format (pivot_longer())
   newDf2 <- pivot_longer(newDf, cols = colnames(onlyNumeric), names_to = "replicates", values_to = colName)
-  message("reshape done inside replicate func")
   rownames(newDf2) <- NULL
   
   return(newDf2)

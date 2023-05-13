@@ -136,6 +136,7 @@ mainSection <- div(
                              tags$span("Yes", style = "font-weight:bold; color:#0099e6"))
               radioButtons(inputId = "transform", label = "Reshape wide to long format", choiceNames = trsOpt, choiceValues = c("No", "Yes"), inline = TRUE) 
             }),
+            bsTooltip(id= "transform", title = "Input data for graph should be in long format. Apply reshape if data is in wide format.", options = list(container = "body")),
             # selectInput(inputId = "transform", label = "Reshape the data", choi, selected = "No"),
             conditionalPanel(condition = "input.transform == 'Yes'",
                              # helpText(list(tags$p("Reshape will transpose column to row (long formate)."), tags$p("It facilitate comparison between variables.")), style= "color:black; margin-top:0; background-color:#D6F4F7; border-radius:5%; text-align:center;")),
@@ -850,21 +851,24 @@ mainSection <- div(
                 )
               )
             ) %>% tagAppendAttributes(class = "figurePlotBox"),
+            
+            #additional settings for graph-------------------------
             #box for figure settings:theme  
             conditionalPanel(condition = "input.plotType != 'none' ",
                              actionBttn(inputId = "figureThemeHideShow", label = "+", size = "xs"),
                              bsTooltip(id = "figureThemeHideShow", title = "Hide/show the below panel", placement = "top", trigger = "hover", options = list(container = "body"))
             ),
-            box(
-              id = "figureThemeId",
-              width = 12,
-              
-              #text label for x-axis
-              conditionalPanel(condition = "input.plotType != 'none' ",
+            conditionalPanel(condition = "input.plotType != 'none' ",
+                             box(
+                               id = "figureThemeId",
+                               width = 12,
+                               style = "border:dotted 1px #9cd4fc; border-radius: 5px; padding-left:10px; padding-right:10px; padding-bottom:10px;
+                        background-image:linear-gradient(rgba(56, 168, 249, 0.15), white 17%);",
+                               #text label for x-axis
                                div(
                                  id = "changeNameDiv",
-                                 style= "border-top:dotted 1px;margin:0; text-align:center;
-                                                      background-image:linear-gradient(rgba(206,247,250, 0.2), rgba(206,247,250, 0.1), white)", #rgba(206,247,250, 0.2), rgba(254, 254, 254, 0.1), rgba(206,247,250, 0.5)
+                                 style= "margin:0; text-align:center; border-bottom:dotted 1px #9cd4fc; margin-bottom:15px;
+                          background-image:linear-gradient(rgba(206,247,250, 0.2), rgba(206,247,250, 0.1), white)", #rgba(206,247,250, 0.2), rgba(254, 254, 254, 0.1), rgba(206,247,250, 0.5)
                                  h4("Change variable name of x-axis", align = "center", style = "color:green; margin-bottom:7px"),
                                  fluidRow(
                                    # column(4, uiOutput("uiXAxisTextLabelChoice")),
@@ -875,21 +879,17 @@ mainSection <- div(
                                    )#manage in server logic
                                  )
                                ),
-                               bsTooltip(id = "changeNameDiv", title = "Applicable only when the x-axis is non-numeric", placement = "top",  trigger = "hover", options = list(container = "body"))
-              ),
-              
-              #font size
-              conditionalPanel(condition = "input.plotType != 'none'",
+                               bsTooltip(id = "changeNameDiv", title = "Applicable only when the x-axis is non-numeric", placement = "top",  trigger = "hover", options = list(container = "body")),
+                               
+                               #font size
                                column(6, sliderInput(inputId = "titleSize", label = "Axis title font size", min = 10, max = 50, value = 15)),
                                column(6, sliderInput(inputId = "textSize", label = "Axis text font size", min = 10, max = 50, value = 15)),
                                fluidRow(
                                  column(6, textAreaInput(inputId = "yLable", label = "Enter title for Y-axis", height = "35px")),
                                  column(6, textAreaInput(inputId = "xLable", label = "Enter title for X-axis", height = "35px"))
-                               )
-              ),
-              
-              #ui for legend
-              conditionalPanel(condition = "input.plotType != 'none' && (input.colorSet != 'none' || (input.shapeLine == 'Shape' || input.shapeLine == 'Line type'))",
+                               ),
+                               
+                               #ui for legend
                                fluidRow(
                                  
                                  #position
@@ -902,43 +902,44 @@ mainSection <- div(
                                                   #Legend title on & off
                                                   column(3, checkboxInput(inputId = "legendTitle", label = span("Remove legend title", style = "font-weight:bold; color:cornflowerblue")))
                                  )
-                               )
-              ),
-              
-              fluidRow(
-                # uiOutput("UiPlabelSize"),
-                conditionalPanel(condition = "input.plotType != 'none' && input.stat != 'none'",
-                                 sliderInput(inputId = "plabelSize", label = "Adjust p-value label size", min = 1, max = 15, value = 7)
-                ),
-                
-                #Miscellaneous setting for graph
-                conditionalPanel(condition = "input.plotType != 'none'",
-                                 dropdownButton(
-                                   inputId = "miscGraphSet",
-                                   label = "Misc setting",
-                                   icon = icon("sliders"),
-                                   size="sm",
-                                   up=TRUE,
-                                   margin = '5px',
-                                   status = "primary",
-                                   circle = FALSE,
-                                   tooltip = tooltipOptions(title = "Click"),
-                                   div(
-                                     class = "miscDiv",
-                                     {lch <- list(tags$span("No", style = "font-weight:bold; color:#0099e6"), 
-                                                  tags$span("Yes", style = "font-weight:bold; color:#0099e6"))
-                                     
-                                     radioButtons(inputId = "Ylimit", label = "Set lower limit of y-axis to 0?",
-                                                  choiceNames = lch, choiceValues = c("no", "yes"), inline = TRUE)},
-                                     
-                                     uiOutput("UiRemoveBracket"),
-                                     uiOutput("UiStripBackground")
-                                     
-                                   )
-                                 )
-                ))
-              # )#end for legend
-            ) %>% tagAppendAttributes(class="figureTheme")#end figure box
+                               ),
+                               
+                               fluidRow(
+                                 # uiOutput("UiPlabelSize"),
+                                 div(
+                                   style = "padding-left: 10px",
+                                   conditionalPanel(condition = "input.plotType != 'none' && input.stat != 'none'",
+                                                    sliderInput(inputId = "plabelSize", label = "Adjust p-value label size", min = 1, max = 15, value = 7),
+                                   ),
+                                   
+                                   #Miscellaneous setting for graph
+                                   conditionalPanel(condition = "input.plotType != 'none'",
+                                                    dropdownButton(
+                                                      inputId = "miscGraphSet",
+                                                      label = "Misc setting",
+                                                      icon = icon("sliders"),
+                                                      size="sm",
+                                                      up=TRUE,
+                                                      margin = '5px',
+                                                      status = "primary",
+                                                      circle = FALSE,
+                                                      tooltip = tooltipOptions(title = "Click"),
+                                                      div(
+                                                        class = "miscDiv",
+                                                        {lch <- list(tags$span("No", style = "font-weight:bold; color:#0099e6"), 
+                                                                     tags$span("Yes", style = "font-weight:bold; color:#0099e6"))
+                                                        
+                                                        radioButtons(inputId = "Ylimit", label = "Set lower limit of y-axis to 0?",
+                                                                     choiceNames = lch, choiceValues = c("no", "yes"), inline = TRUE)},
+                                                        
+                                                        uiOutput("UiRemoveBracket"),
+                                                        uiOutput("UiStripBackground")
+                                                        
+                                                      )
+                                                    )
+                                   ))) #end of fluidrow
+                             ) %>% tagAppendAttributes(class="figureTheme")#end figure box
+            )#additional settings for graph-------------------------
           ) %>% tagAppendAttributes(class="figureMainPanel")#end mainpanel
           
         ) %>% tagAppendAttributes(class = "figureSidebarLayout")#end of figure sidebar layout
@@ -1186,39 +1187,35 @@ server <- function(input, output, session){
     filterMsg(NULL)
     #get data based on users input
     if(req(input$pInput) == "upload data"){
+      #initial data is null
+      pData <- NULL
       
-      #get the extension of the file
-      ext <- tools::file_ext(req(upPath()$datapath))
-      
-      #alert and validate the file type
-      output$UiUploadInvalid <- renderUI({
-        if(req(input$pInput) == "upload data" && !ext %in% c("csv","tsv","xlsx", "xls","rds", "txt") ){
-          helpText(list(tags$p("Invalid file!!"), tags$p("Please upload a valid file: csv/tsv/txt/xlsx/xls/rds")), style= "color:red; text-align:center")
-        }
-      })
-      shiny::validate(
-        need(ext %in% c("csv","tsv","xlsx", "xls","rds", "txt"), "Please upload a valid file: csv/tsv/txt/xlsx/xls/rds")
-      )
-      
-      
-      # #manage missing values
-      if(!isTruthy(input$selectNA)){
-        naList <- c("", " ", "NA", "na")
-      }else if(isTruthy(input$selectNA)){
-        #process the given list
-        naList <- strsplit(gsub(",", "=", input$selectNA),"=") %>% unlist()#strsplit(str_trim(gsub(",", " ", input$selectNA))," +") %>% unlist()
-      }
       tryCatch({
-        # browser()
+        
+        #manage missing values
+        if(!isTruthy(input$selectNA)){
+          naList <- c("", " ", "NA", "na")
+        }else if(isTruthy(input$selectNA)){
+          #process the given list
+          naList <- strsplit(gsub(",", "=", input$selectNA),"=") %>% unlist()#strsplit(str_trim(gsub(",", " ", input$selectNA))," +") %>% unlist()
+        }
+        
+        #get the extension of the file
+        ext <- tools::file_ext(req(upPath()$datapath))
+        
+        #invalid file extension: alert and validate the file type
+        shiny::validate(
+          need(ext %in% c("csv","tsv","xlsx", "xls","rds", "txt"), "Error: upload a valid file: csv/tsv/txt/xlsx/xls/rds")
+        )
         #read the data
         up_df <- switch(ext,
-                        "csv" = vroom::vroom(upPath()$datapath, na = naList) %>% as.data.frame(), #, na = naList
-                        "tsv" = vroom::vroom(upPath()$datapaht, na = naList) %>% as.data.frame(),
+                        "csv" = vroom::vroom(upPath()$datapath, na = naList, delim = ",") %>% as.data.frame(), #, na = naList
+                        "tsv" = vroom::vroom(upPath()$datapaht, na = naList, delim = "\t") %>% as.data.frame(),
                         "txt" = vroom::vroom(upPath()$datapaht, na = naList) %>% as.data.frame(),
                         "xlsx" = read_xlsx(upPath()$datapath, na = naList),
                         "xls" = read_xls(upPath()$datapath, na = naList),
                         "rds" = readRDS(upPath()$datapath, na = naList))
-        uploadError <<- 0
+        
         
         #remove or replace na 
         if(input$remRepNa == "remove"){
@@ -1227,29 +1224,44 @@ server <- function(input, output, session){
           pData1 <- up_df %>% mutate_all(., ~replace(., is.na(.), 0)) %>% as.data.frame()#mutate_if(is.numeric, ~ replace(., is.na(.), 0)) %>% as.data.frame()
         }
         
-        #search and convert to numeric: there is no need to convert to numeric.
-        pData <- pData1 
-        pData
+        #column name starting with number must be reported and stop execution
+        nonNumberCol <- str_detect(colnames(pData1), "^\\D")
+        
+        validate(
+          need(all(nonNumberCol), "Error: can't proceed. Column name must not start with number!!")
+        )
+        
+        #header may include `...1` while importing: replace the `...` with new name
+        dotPresence <- str_detect(colnames(pData1), "^\\.+")
+        
+        if(any(dotPresence)){
+          showNotification("Improprer column name. Column name has been renamed.", duration = 4, type = "warning")
+          oldCol <- colnames(pData1)
+          #replaced with new column name: 'new_alphabet'
+          newCol <- str_replace(oldCol,"\\.+", paste0("new_",letters[1:length(oldCol)]))
+          colnames(pData1) <- newCol
+        }
+        
+        pData <- pData1
+        uploadError(0)
+        
         
       }, error = function(e){
-        uploadError <<- 1
-        # uploadErrorMessage <<- e
-        print(e)
-        validate(
-          "Unable to load the file!"
-        )
+        uploadError(1)
+        uploadMsg(e)
       })
       
       
     }else if(input$pInput == "example"){
       req(input$pFile %in% c("long format", "wide format", "replicate"))
+      #data is in global.R
+      
       if(req(input$pFile) == "long format"){
         #example for long format
         pData <- long_df
       }else if(req(input$pFile) == "wide format"){
         #example for wide format
         pData <- wide_df
-        
         
       }else if (req(input$pFile) == "replicate"){
         #example for replicate
@@ -1359,14 +1371,15 @@ server <- function(input, output, session){
     req(input$replicatePresent == "yes", input$dataVariables)
     #number of variables
     varNum <- reactive(paste0("Variable", seq_len(input$dataVariables))) 
+    
     map(varNum(), ~ fluidRow(
       #input$Variable1 ... n
       column(5, textInput(inputId = .x, label = paste0(str_replace(.x, "Variable", "Group"), " name"))),
       #input$Variable1R ... nR
-      column(7, selectInput(inputId = paste0(.x,"R"), label = "Replicate columns", choices = seq_len(ncol(pInputTable$data)), multiple = TRUE))
+      # column(7, selectInput(inputId = paste0(.x,"R"), label = "Replicate columns", choices = seq_len(ncol(pInputTable$data)), multiple = TRUE))
+      column(7, selectInput(inputId = paste0(.x,"R"), label = "Replicate columns", choices = colnames(pInputTable$data), multiple = TRUE))
     ))
   })
-  
   
   
   #action button to run the replicate parameters
@@ -1374,8 +1387,6 @@ server <- function(input, output, session){
     #Button will be available only when all the parameters are filled
     req(pInputTable$data, input$headerNumber, input$dataVariables, input$replicateStat)
     varNum <- as.numeric(input$dataVariables)
-    # browser()
-    # message(str(varNum))
     
     #check whether name of all the variables has been provided or not
     gName <- all(
@@ -1384,24 +1395,49 @@ server <- function(input, output, session){
           req( eval(str2expression(paste0("input$Variable",.x))) ), regex("[:alnum:]")
         ) )
       ) )
+    #check that variables name are not the same
+    varName <- lapply(1:varNum, function(x) eval(str2expression( paste0("input$Variable",x)) )) %>% unlist()
+    validate(
+      need(length(unique(varName)) == length(varName), "Error: must not provide same group/variable name!")
+    )
+    #all replicate columns provided?
+    rCol <- all(
+      unlist(
+        map(1:varNum, ~ str_detect( 
+          req( eval(str2expression(paste0("input$Variable",.x, "R"))) ), regex("[:alnum:]")
+        ) )
+      ) )
     
-    #convert to numeric and check whether all the replicate columns have been selected
-    # the above strategy does not work in selectInput, so run for loop
-    rCol <- FALSE
-    for (i in seq_len(varNum)){
-      if( all(
-        str_detect( 
-          as.numeric(unlist( req( eval(str2expression(paste0("input$Variable",i,"R"))) ) )), regex("[:digit:]")
-        ) 
-      ) ){
-        
-        rCol <- TRUE
-        
-      }else{
-        rCol <- FALSE
-        break
-      }
+    #check whether replicate columns has duplicated: 
+    listCol <- c(NULL, NULL)
+    for(i in seq_len(varNum)){
+      listCol <- c(listCol, eval(str2expression(paste0("input$Variable",i,"R"))))
     }
+    validate(
+      need(
+        length(unique(listCol)) == length(listCol), "Error: duplicate columns selected for replicate!"
+      )
+    )
+    #number of replicate must be equal for all
+    #get replicates detail from the user's input as list
+    repDetails <- lapply(1:input$dataVariables, function(x) eval(str2expression(paste0("input$Variable",x,"R"))))
+    
+    #check that the column can be converted as numeric
+    #get
+    numericCheck_df <- pInputTable$data[-c(1:as.numeric(input$headerNumber)), ] %>% select(!!!rlang::syms(unlist(repDetails))) #%>% mutate(across(.cols = everything(), as.numeric))
+    # browser()
+    message(str(numericCheck_df))
+    #check
+    validate(
+      need( all(lapply(numericCheck_df, str_detect, pattern = "^[:digit:]*$") %>% unlist()), "Error: must select only numeric columns!")
+    )
+    
+    #count the replicates for each group
+    repCount <- lapply(repDetails, length)
+    
+    validate(
+      need(all(repCount == repCount[[1]]), "Error: variable has unequal replicates!")
+    )
     
     if(isTRUE(gName) && isTRUE(rCol)){
       actionButton(inputId = "replicateActionButton", label = span("Apply", style="color:white; font-weight:bold"), width = '100%', class = "btn-primary")
@@ -1414,19 +1450,21 @@ server <- function(input, output, session){
     # req(pInputTable$data, input$headerNumber, input$dataVariables, input$replicateStat)
     req(is.data.frame(pInputTable$data), pInputTable$data, input$dataVariables, input$replicateStat != "none", eval( str2expression(paste0("input$Variable",1:input$dataVariables,"R")) ) )
     output$UireplicateStatGroup <- renderUI({
+      
       if(input$replicateStat != "none"){
-        #provide option for the column index
-        #make sure that no index overlapped with replicates index
-        df_col <- 1:ncol(pInputTable$data)
-        replicateIndx <- lapply( 1:as.numeric(input$dataVariables), function(x) as.numeric(eval( str2expression(paste0("input$Variable",x,"R")) )) ) %>% unlist()
-        
-        #get the index not present in the replicates
+        #provide option to choose the columns
+        #make sure that no columns overlapped with replicates columns
+        # df_col <- 1:ncol(pInputTable$data)
+        df_col <- colnames(pInputTable$data)
+        # replicateIndx <- lapply( 1:as.numeric(input$dataVariables), function(x) as.numeric(eval( str2expression(paste0("input$Variable",x,"R")) )) ) %>% unlist()
+        replicateIndx <- lapply( 1:as.numeric(input$dataVariables), function(x) eval( str2expression(paste0("input$Variable",x,"R")) ) ) %>% unlist()
+        #get the columns not present in the replicates
         gr_col <- df_col[!df_col %in% replicateIndx]
-        selectInput(inputId = "replicateStatGroup", label = "Specify column(s) to group by", choices = c("none", gr_col), multiple = TRUE, selected = "none")
+        # selectInput(inputId = "replicateStatGroup", label = "Specify column(s) to group by", choices = c("none", gr_col), multiple = TRUE, selected = "none")
         #below code: use it for data base (ibdc), but not for plotS
         #get the column name from the table
-        # gr_col_name <- pInputTable$data[, gr_col, drop = FALSE] %>% colnames()
-        # selectInput(inputId = "replicateStatGroup", label = "Specify column(s) to group by", choices = c("none", gr_col_name), multiple = TRUE)
+        gr_col_name <- pInputTable$data[, gr_col, drop = FALSE] %>% colnames()
+        selectInput(inputId = "replicateStatGroup", label = "Specify column(s) to group by", choices = c("none", gr_col_name), multiple = TRUE)
       }
     })
   })
@@ -1703,7 +1741,6 @@ server <- function(input, output, session){
       req(input$replicateStatGroup)
       
       #-message(input$replicateStatGroup)
-      #for future
       if(length(input$replicateStatGroup) > 1){
         validate(
           need( !any("none" %in% req(input$replicateStatGroup)), "Remove 'none' from the selection")
@@ -1724,9 +1761,8 @@ server <- function(input, output, session){
       
       if( !any("none" %in% req(input$replicateStatGroup)) ){
         #For mean and median, if user specified group by, then, keep the variable in the first column of the table
-        data <- data %>% select(colnames(data[, as.numeric(input$replicateStatGroup), drop=FALSE]), everything())
-        #below code: use it for data base (ibdc), but not for plotS
-        # data <- data %>% select(!!!rlang::syms(input$replicateStatGroup), everything())
+        # data <- data %>% select(colnames(data[, as.numeric(input$replicateStatGroup), drop=FALSE]), everything())
+        data <- data %>% select(!!!rlang::syms(input$replicateStatGroup), everything())
       }
     }
     
@@ -1735,71 +1771,22 @@ server <- function(input, output, session){
     varId <- reactive(paste0("Variable", seq_len(input$dataVariables)))
     
     #get replicates detail from the user's input as list
-    repDetails <- lapply(1:input$dataVariables, function(x) eval(str2expression(paste0("input$Variable",x,"R"))))
+    repDetails <- lapply(1:input$dataVariables, function(x) eval(str2expression(paste0("input$Variable",x,"R")))) %>% unlist()
     
     #count the replicates for each group
-    repCount <- lapply(repDetails, length)
-    
-    
-    #check error and alert the user:
-    # case 1: must have equal replicates for all the group
-    # case 2: must not select the same replicate column more than once
-    if( any(repCount != repCount[[1]]) & length(unlist(repDetails)) == length(unique(unlist(repDetails))) ){
-      #case 1
-      unequalReplicateError(1)
-    }else if( all(repCount == repCount[[1]]) & length(unlist(repDetails)) != length(unique(unlist(repDetails))) ){
-      #case 2
-      unequalReplicateError(2)
-    }else if( any(repCount != repCount[[1]]) & length(unlist(repDetails)) != length(unique(unlist(repDetails))) ){
-      #case 1 and 2
-      unequalReplicateError(3)
-    }else{
-      #no error
-      unequalReplicateError(0)
-    }
-    #stop processing
-    validate(
-      need(#case 1
-        all(repCount == repCount[[1]]) && length(unlist(repDetails)) == length(unique(unlist(repDetails))), "Error: select the appropriate replicate column for variables"
-      )
-    )
+    # repCount <- lapply(repDetails, length)
     
     #unlist and convert to numeric (it's a list of index number for columns)
-    repCol <- repDetails %>% unlist() %>% as.numeric()
+    # repCol <- repDetails %>% unlist() %>% as.numeric()
     
-    #separate data to replicate and non-replicate [if any (not all data will have variables other than replicates)]
-    
-    #non-replicate data: 
-    # case 1: not need of mean or median, than proceed as usual i.e. deselect the replicate column 
-    # case 2: with mean or median,
-    #       case i: group by column is specified, than add length(input$replicateStatGroup) 
-    #               to repCol if it is not 1, since the group by variables is being placed in the start column
-    #       case ii: group by not specified, than proceed as case 1.
-    
-    if(req(input$replicateStat) != "none"){
-      
-      if(req(input$replicateStatGroup) != "none"){
-        
-        if(as.numeric(input$replicateStatGroup) == 1){
-          noRep_df <- data[, -(repCol), drop=FALSE] 
-        }else{
-          noRep_df <- data[, -(repCol + length(input$replicateStatGroup)), drop=FALSE] 
-        }
-        
-      }else{
-        noRep_df <- data[, -repCol, drop=FALSE] 
-      }
-      
-    }else{
-      noRep_df <- data[, -repCol, drop=FALSE] 
-    }
-    
-    #dummy data frame to collect the replicates data after iteration and processing for each variable.
-    mergeData <- data.frame()
-    #stopwatch for processing columns other than replicates (inside the function: tidyReplicate())
-    stp <- 0 # 0 to 1: 1 is to stop
     
     tryCatch({
+      #get non-replicate data [if any (not all data will have variables other than replicates)]
+      noRep_df <- data %>% select(-repDetails) %>% as.data.frame()
+      #dummy data frame to collect the replicates data after iteration and processing for each variable.
+      mergeData <- data.frame()
+      #stopwatch for processing columns other than replicates (inside the function: tidyReplicate())
+      stp <- 0 # 0 to 1: 1 is to stop
       
       #for loop to tidy up the replicate for each group [[change code later]]
       for(i in seq_along(varId())){
@@ -1808,18 +1795,13 @@ server <- function(input, output, session){
         colName <- eval(str2expression(paste0("input$Variable",i)))
         
         #replicates column for the given variable
-        no <- eval(str2expression(paste0("input$Variable",i,"R")))
-        #convert to numeric: replicate columns
-        colNo <- as.numeric(no)
-        #use trycatch()
-        # tryCatch({
+        reps <- eval(str2expression(paste0("input$Variable",i,"R")))
         #run the tidy function
         rstat <- tidyReplicate(x=data, y = noRep_df, headerNo = 1:headerNo(),
-                               colName= colName, colNo = colNo, stp=stp)
+                               colName= colName, colNo = reps, stp=stp)
         stp <- 1
         
         message("000000000000000000000000helo")
-        
         
         #tidy the computed data.: output will have all the columns and computed stat
         #remove column not necessary 
@@ -1846,14 +1828,17 @@ server <- function(input, output, session){
           gb_col <- NULL
         }
         
-        # browser()
-        #-message(str(mergeData))
-        #get the name of the columns for which variables to determine mean or median
+        #get the name of the columns for which variables the mean or median is to be determined
         other_col <- colnames( mergeData[, 1:which(colnames(mergeData) == "replicates")-1, drop = FALSE] )
         
         #check that the col must be numeric (other than other_col)
-        numericCheck_df <- mergeData %>% select(-all_of(other_col), -replicates)
-        #-message(str(numericCheck_df))
+        #get
+        numericCheck_df <- mergeData %>% select(-all_of(other_col), -replicates) #%>% mutate(across(.cols = everything(), as.numeric))
+        #check
+        validate(
+          need( all(lapply(numericCheck_df, str_detect, pattern = "[:digit:]") %>% unlist()), "Error: cannot convert to numeric. Select only numeric columns!")
+        )
+        
         #get only the names of the necessary columns to process futher
         mm_col <- mergeData %>% select(-all_of(other_col), -replicates) %>% colnames()
         
@@ -1872,7 +1857,7 @@ server <- function(input, output, session){
         mm_df <- mm_list %>% as.data.frame.list()
         if(!is_empty(gb_col)){
           #keep variables used in group by
-          nR_df <- mergeData %>% select(gb_col) 
+          nR_df <- mergeData %>% select(all_of(gb_col))
           # keep only the unique
           nr_df_uniq <- nR_df %>% distinct(!!!rlang::syms(colnames(nR_df))) %>% as.data.frame()
           #append
@@ -5518,6 +5503,15 @@ server <- function(input, output, session){
       
       tryCatch({
         #check condition-----------------------
+        #data must have atleast two row
+        validate(
+          need(nrow(ptable()) > 1, "Error: data must have at least two rows!")
+        )
+        #check: y-axis variable must be numeric
+        #this is very important when data has multiple header rows (with replicates)
+        validate(
+          need(is.numeric(ptable()[, input$yAxis]), "Error: non-numeric data. Provide numeric column to y-axis")
+        )
         
         #check for x and y-axis
         if(pltType() %in% xyRequire){
@@ -5994,7 +5988,7 @@ server <- function(input, output, session){
         # str_detect("object 'sData1' not found", "sData1")
         validate(
           need(
-            finalPltError() == 0, if(str_detect(finalPltErrorMsg()$message, "sData1")){
+            finalPltError() == 0, if(str_detect(finalPltErrorMsg()$message, "sData1|undefined columns selected")){
               ""
             }else{ finalPltErrorMsg()$message }
           ) 
@@ -6017,7 +6011,7 @@ server <- function(input, output, session){
           # browser()
           cal <- ifelse(pltType() %in% c("box plot", "violin plot"), "median", "mean")
           finalPlt_settings <- switch(req(input$addLayer),
-                                      "line" = forFinalPlt() + stat_summary(fun = cal, geom = 'line', aes(group = 1), linewidth = re(input$layerSize)),
+                                      "line" = forFinalPlt() + stat_summary(fun = cal, geom = 'line', aes(group = 1), linewidth = req(input$layerSize)),
                                       "smooth" = forFinalPlt() + geom_smooth(size = req(input$layerSize), se = ifelse(isTruthy(input$addLayerCI), TRUE, FALSE), color = req(input$addLayerColor),
                                                                              method = req(input$smoothMethod)),
                                       "point" = forFinalPlt() + geom_point(size = req(input$layerSize), alpha = req(input$layerAlpha)),
