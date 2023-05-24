@@ -63,6 +63,9 @@ library(shinyWidgets)
 # library(shinyauthr)
 
 #Objects necessary to create---------------
+#tags list
+yesNoTag <- list(tags$span("Yes", style = "font-weight:bold; color:#0099e6"),
+                 tags$span("No", style = "font-weight:bold; color:#0099e6"))
 #error objects
 uploadError <- reactiveVal(0) #1: stop; 0 continue
 uploadMsg <- reactiveVal(NULL)
@@ -646,14 +649,535 @@ insetParamFunc <- function(inDf, oriDf, orix, insx = "default", oriTextLabel, fi
   }
   
   #get color from the original graph (variables of x axis)
-  origColor <- hue_pal()(length(xVarName))
-  # origColor <- unique(ggplot_build(finalPlt)$data[[1]][,1]) %>% as.vector()
+  # origColor <- hue_pal()(length(xVarName))
+  origColor <- unique(ggplot_build(finalPlt)$data[[1]][,1]) %>% as.vector()
   #filter only the color for the inset variables and save as reactive object
   insetColor(origColor[which(xVarName %in% insetXVarName)])
   #return empty
   return("")
 }
 
+#module for dual y-axis-------------------
+secLine <- reactiveVal(list(NULL, NULL))
+#generic module for secondary y-axis variable and color
+"argument:
+id = character. Input id.
+df = data frame.
+yPr = character. variable for primary y-axis"
+"module not in use"
+moduleSecVarColor <- function(id, df = NULL, yPr = NULL){
+  ns <- NS(id)
+  # browser()
+  #variable for secondary y-axis
+  #get numeric columns from data
+  colList <- lapply(colnames(df), function(x) is.numeric(df[,x])) %>% unlist()
+  df_numOnly <- df[, which(colList)]
+  
+  validate(
+    need(nrow(df_numOnly) > 1 & ncol(df_numOnly) >= 2, "Error: data must have at least two numeric columns!")
+  )
+  #selected default variable from the table
+  selCol <- colnames(df_numOnly)[which(colnames(df_numOnly) != yPr)]
+  
+  tagList(
+    #provide variable option to choose
+    selectInput(inputId = "secVariable", label = "Choose variable", choices = c(colnames(df_numOnly)), selected = selCol[1]),
+    #color
+    selectInput(inputId = "secColor", label = "color", choices = sort(c("blue", "green", "red", "black", "grey", "brown")))
+  )
+  
+}
+
+#module for line
+"arguments:
+id = character. input id
+"
+moduleLineSecUi <- function(id){
+  ns <- NS(id)
+  tagList(
+    #ui for variable and color
+    # uiOutput(ns("uiVarCol")),
+    {
+      choiceList <- list(tags$span("Yes", style = "font-weight:bold; color:#0099e6"), tags$span("No", style = "font-weight:bold; color:#0099e6"))
+      radioButtons(inputId = ns("secTitleText"), label = "Apply same color to seconday y-axis label?", choiceNames = choiceList, choiceValues = c("yes", "no"), inline = TRUE)
+    },
+    #ui line type
+    selectInput(ns("secLineType"), label = "Line type", choices = sort(c("solid", "dotted", "dashed", "longdash", "dotdash")), selected = "solid"),
+    #ui for line width
+    sliderInput(ns("secLineWidth"), label = "Line width", min = 0.1, max = 10, value = 1),
+    #ui alpha
+    sliderInput(ns("secLineAlpha"), label = "Transparency", min = 0.01, max = 1, value = 1)
+    #connect: add later
+  )
+}
+"
+
+arguments:
+id = character. input id
+df = data.frame.
+yPr = character. Column name used in primary y-axis (left). Must be numeric column.
+ySec = character. Column name to be used in secondary y-axis (right).
+        It must be numeric columns.
+yCol= character. Color for line.
+titlePr = character. title of primary axis.
+addPoint = character. to add or remove point for the line. Add=='point'; remove != 'point'
+pointSize = numeric. size for point.
+pointAlpha = numeric. control transparency.
+secTitle = character. title for secondary axis.
+
+Return type: list of ggplot objects
+"
+# pltType = May not require!! character. Type of graph for secondary y-axis.
+moduleLineSecSer <- function(id, df = NULL, pltType = NULL, yPr= NULL,
+                             ySec = NULL, yCol = NULL, titlePr = NULL,
+                             addPoint = "none", pointSize = 1, pointALpha = 0.5,
+                             textSize = 15, textTile = 15, secTitle = "secondary title"
+){
+  moduleServer(id, function(input, output, session){
+    
+    req(is.data.frame(df))
+    
+    tryCatch({
+      req(input$secLineType, input$secLineAlpha, input$secLineWidth)
+      # browser()
+      
+      #get the data for yPr and ySec
+      yPr_d <- reactiveVal(df[, yPr]) #vector
+      ySec_d <- reactiveVal(df[, ySec]) #vector
+      
+      #checks: both must be numeric
+      shiny::validate(
+        #this was taken care
+        need(all(is.numeric(yPr_d())), "Error: primary y-axis is non-numeric. Provide numeric column!"),
+        need(all(is.numeric(ySec_d())), "Error: secondary y-axis is non-numeric. Provide numeric column!")
+      )
+      #axis transformation: balance the dual axis
+      myp <- max(yPr_d())
+      mys <- max(ySec_d())
+      
+      
+      if(myp > mys){
+        #primary is greater than sec
+        #get multiplier for sec
+        mlp <- myp/mys
+        
+        secDetail <- list(
+          #
+          geom_line(aes( y = eval(str2expression(ySec)) * mlp, group = 1), color = yCol, linetype = input$secLineType,
+                    alpha = input$secLineAlpha, linewidth = input$secLineWidth),
+          #add point to the line
+          if(addPoint == "point"){
+            geom_point(aes( y = eval(str2expression(ySec)) * mlp, group = 1), color = yCol, size = pointSize, alpha = pointALpha)
+          }else{NULL},
+          #scale
+          scale_y_continuous(
+            #title of primary y-axis
+            # name = titlePr,
+            #param for sec y-axis
+            sec.axis = sec_axis(trans = ~. / mlp, name = secTitle)
+          )
+        )
+        
+      }else if(myp < mys){
+        #secondary is greater than primary
+        #get divider for sec
+        dv <- mys/myp
+        #list
+        secDetail <- list(
+          #
+          geom_line(aes( y = eval(str2expression(ySec)) / dv, group = 1), color = yCol, linetype = req(input$secLineType),
+                    alpha = req(input$secLineAlpha), linewidth = req(input$secLineWidth)),
+          
+          if(addPoint == "point"){
+            geom_point(aes( y = eval(str2expression(ySec)) / dv, group = 1), color = yCol, size = pointSize, alpha = pointALpha)
+          }else{NULL},
+          
+          scale_y_continuous(
+            #title of primary y-axis
+            # name = titlePr,
+            #param for sec y-axis
+            sec.axis = sec_axis(trans = ~. * dv, name = secTitle)
+          )
+        )
+      }else{
+        secDetail <- list(
+          #no difference in max
+          geom_line(aes( y = eval(str2expression(ySec)), group =1 ), color = yCol, linetype = req(input$secLineType),
+                    alpha = req(input$secLineAlpha), linewidth = req(input$secLineWidth)),
+          
+          if(addPoint == "point"){
+            geom_point(aes( y =  eval(str2expression(ySec)), group = 1), color = yCol, size = pointSize, alpha = pointALpha)
+          }else{NULL},
+          
+          scale_y_continuous(
+            #title of primary y-axis
+            # name = titlePr,
+            #param for sec y-axis
+            sec.axis = sec_axis(trans = ~., name = secTitle)
+          )
+        )
+      }
+      
+      
+      #add thhem
+      list(
+        secDetail,
+        
+        #theme
+        if(req(input$secTitleText) == "yes"){
+          theme(
+            axis.title.y.right = element_text(color = yCol, size=textTile),
+            axis.text.y.right = element_text(color = yCol, size=textSize)
+          )
+        }else{NULL}
+      )
+      
+    }, error = function(e){
+      print(e)
+    })
+    
+  })
+}
+
+#common module: variable, color, theme -> name of axis title, font size of axis,
+#module box plot
+moduleBoxSecUi <- function(id){
+  ns <- NS(id)
+  
+  tagList(
+    #ui line type
+    selectInput(ns("secLineType"), label = "Line type", choices = sort(c("solid", "dotted", "dashed", "longdash", "dotdash")), selected = "solid"),
+    #box width
+    sliderInput(inputId = ns("secBoxWidth"), label = "Box width", min = 0, max = 1, value = 0.5),
+    #color option to use default or one colour
+    { 
+      colOpt <- list(tags$span("Yes", style = "font-weight:bold; color:#0099e6"), tags$span("No", style = "font-weight:bold; color:#0099e6"))
+      radioButtons(inputId = ns("secBoxColorOpt"), label = "Same color as the primary axis?", choiceNames = colOpt, choiceValues = c("yes", "no"), inline = TRUE )
+    },
+    #one colour choice
+    conditionalPanel(condition = "input.secBoxColorOpt == 'no'", ns = ns, 
+                     colourpicker::colourInput(inputId = ns("secBoxColorOne"), label = "Box color", value = "grey", showColour = "both")
+    ),
+    #color for y-axis
+    {
+      choiceList <- list(tags$span("Yes", style = "font-weight:bold; color:#0099e6"), tags$span("No", style = "font-weight:bold; color:#0099e6"))
+      radioButtons(inputId = ns("secTitleText"), label = "Apply color to seconday y-axis label?", choiceNames = choiceList, choiceValues = c("yes", "no"), inline = TRUE)
+    }
+  )
+}
+
+#box server
+"id = character. input id
+df = data.frame.
+yPr = character. Column name used in primary y-axis (left). Must be numeric column.
+ySec = character. Column name to be used in secondary y-axis (right).
+        It must be numeric columns.
+primaryCol = character. color of primary axis.
+yCol= character. Color for line.
+addPoint = character. to add or remove point for the line. Add=='point'; remove != 'point'
+pointSize = numeric. size for point.
+pointAlpha = numeric. control transparency.
+secTitle = character. title for secondary axis.
+
+Return type: list of ggplot object"
+moduleBoxSecSer <- function(id, df = NULL, pltType = NULL, yPr= NULL,
+                            ySec = NULL, primaryCol = NULL,
+                            textSize = 15, textTile = 15, secTitle = "secondary title"
+){
+  moduleServer(id, function(input, output, session){
+    req(is.data.frame(df))
+    # browser() 
+    tryCatch({
+      
+      #get the data for yPr and ySec
+      yPr_d <- reactiveVal(df[, yPr]) #vector
+      ySec_d <- reactiveVal(df[, ySec]) #vector
+      
+      #checks: both must be numeric
+      shiny::validate(
+        #this was taken care
+        need(all(is.numeric(yPr_d())), "Error: primary y-axis is non-numeric. Provide numeric column!"),
+        need(all(is.numeric(ySec_d())), "Error: secondary y-axis is non-numeric. Provide numeric column!")
+      )
+      #axis transformation: balance the dual axis
+      myp <- max(yPr_d())
+      mys <- max(ySec_d())
+      
+      
+      if(myp > mys){
+        #primary is greater than sec
+        #get multiplier for sec
+        mlp <- myp/mys
+        "secBoxWidth secBoxColorOpt secBoxColorOne secTitleText"
+        secDetail <- list(
+          #graph
+          if( req(input$secBoxColorOpt) == "yes"){ 
+            list(
+              stat_boxplot(aes( y = eval(str2expression(ySec)) * mlp), geom='errorbar', linetype = req(input$secLineType), width = req(input$secBoxWidth)), #, color = primaryCol
+              geom_boxplot(aes( y = eval(str2expression(ySec)) * mlp, fill = primaryCol), linetype = req(input$secLineType), width = req(input$secBoxWidth))
+              
+            )
+          }else{
+            list(
+              stat_boxplot(aes( y = eval(str2expression(ySec)) * mlp), geom='errorbar', linetype = req(input$secLineType), width = req(input$secBoxWidth)), #, color = req(input$secBoxColorOne)
+              geom_boxplot(aes( y = eval(str2expression(ySec)) * mlp), fill = req(input$secBoxColorOne), linetype = req(input$secLineType),  width = req(input$secBoxWidth))
+              
+            )
+          },
+          
+          
+          #scale
+          scale_y_continuous(
+            #param for sec y-axis
+            sec.axis = sec_axis(trans = ~. / mlp, name = secTitle)
+          )
+        )
+        
+      }else if(myp < mys){
+        #secondary is greater than primary
+        #get divider for sec
+        dv <- mys/myp
+        
+        #list
+        secDetail <- list(
+          #graph
+          
+          if(req(input$secBoxColorOpt) == "yes"){
+            list(
+              stat_boxplot(aes( y = eval(str2expression(ySec)) / dv), geom='errorbar', linetype = req(input$secLineType), width = req(input$secBoxWidth)), #, color = primaryCol
+              geom_boxplot(aes( y = eval(str2expression(ySec)) / dv, fill = primaryCol), linetype = req(input$secLineType), width = req(input$secBoxWidth))
+              
+            )
+          }else{
+            list(
+              stat_boxplot(aes( y = eval(str2expression(ySec)) / dv), geom='errorbar', linetype = req(input$secLineType), width = req(input$secBoxWidth)), #, color = req(input$secBoxColorOne)
+              geom_boxplot(aes( y = eval(str2expression(ySec)) / dv), fill = req(input$secBoxColorOne), linetype = req(input$secLineType), width = req(input$secBoxWidth))
+              
+            )
+          },
+          
+          #scale
+          scale_y_continuous(
+            #param for sec y-axis
+            sec.axis = sec_axis(trans = ~. * dv, name = secTitle)
+          )
+        )
+      }else{
+        secDetail <- list(
+          #graph
+          
+          if(req(input$secBoxColorOpt) == "yes"){
+            list(
+              stat_boxplot(aes( y = eval(str2expression(ySec))), geom='errorbar', linetype = req(input$secLineType), width = req(input$secBoxWidth)), #color = primaryCol
+              geom_boxplot(aes( y = eval(str2expression(ySec)), fill = primaryCol), linetype = req(input$secLineType), width = req(input$secBoxWidth))
+              
+            )
+          }else{
+            list(
+              stat_boxplot(aes( y = eval(str2expression(ySec))),  geom='errorbar', linetype = req(input$secLineType), width = req(input$secBoxWidth)), #color = req(input$secBoxColorOne),
+              geom_boxplot(aes( y = eval(str2expression(ySec))), fill = req(input$secBoxColorOne), linetype = req(input$secLineType), width = req(input$secBoxWidth))
+            )
+          },
+          
+          #scale
+          scale_y_continuous(
+            #param for sec y-axis
+            sec.axis = sec_axis(trans = ~., name = secTitle)
+          )
+        )
+        
+      }
+      
+      
+      #add thhem
+      list(
+        secDetail,
+        #theme
+        if(req(input$secTitleText) == "yes"){
+          if(req(input$secBoxColorOpt) == "yes"){
+            theme(
+              axis.title.y.right = element_text(color = "black", size=textTile),
+              axis.text.y.right = element_text(color = "black", size=textSize)
+            )
+          }else{
+            theme(
+              axis.title.y.right = element_text(color = req(input$secBoxColorOne), size=textTile),
+              axis.text.y.right = element_text(color = req(input$secBoxColorOne), size=textSize)
+            )
+          }
+          
+        }else{NULL}
+      )
+      
+    }, error = function(e){
+      print(e)
+    })#end try catch
+    
+  })
+}
+
+#module for bar
+moduleBarPointSecUi <- function(id, label1 = "Bar width", label2 = "bar color", label3= "Bar transparency"){
+  ns <- NS(id)
+  
+  tagList(
+    
+    #box width
+    sliderInput(inputId = ns("secWidth"), label = label1, min = 0.01, max = 2, value = 0.5),
+    #color option 
+    colourpicker::colourInput(inputId = ns("secCol"), label = label2, value = "grey", showColour = "both"),
+    #transparency
+    sliderInput(inputId = ns("secAlpha"), label = label3, min = 0.01, max = 1, value = 1),
+    #color for y-axis
+    {
+      choiceList <- list(tags$span("Yes", style = "font-weight:bold; color:#0099e6"), tags$span("No", style = "font-weight:bold; color:#0099e6"))
+      radioButtons(inputId = ns("secTitleText"), label = "Apply color to seconday y-axis label?", choiceNames = choiceList, choiceValues = c("yes", "no"), inline = TRUE)
+    }
+  )
+}
+
+#bar sever
+moduleBarSecSer <- function(id, df = NULL, ySec = NULL, yPr = NULL, 
+                            textSize = 15, textTile = 15, secTitle = "secondary title"){
+  moduleServer(id, function(input, output, session){
+    req(is.data.frame(df))
+    
+    tryCatch({
+      
+      #get the data for yPr and ySec
+      yPr_d <- reactiveVal(df[, yPr]) #vector
+      ySec_d <- reactiveVal(df[, ySec]) #vector
+      
+      #checks: both must be numeric
+      shiny::validate(
+        #this was taken care
+        need(all(is.numeric(yPr_d())), "Error: primary y-axis is non-numeric. Provide numeric column!"),
+        need(all(is.numeric(ySec_d())), "Error: secondary y-axis is non-numeric. Provide numeric column!")
+      )
+      #axis transformation: balance the dual axis
+      myp <- max(yPr_d())
+      mys <- max(ySec_d())
+      
+      if(myp > mys){
+        #primary is greater than sec
+        #get multiplier for sec
+        mlp <- myp/mys
+        
+        barList <- list(
+          geom_bar(aes(y = eval(str2expression(ySec)) * mlp), alpha = req(input$secAlpha), stat = "identity", fill = req(input$secCol), width = req(input$secWidth)),
+          
+          scale_y_continuous(
+            #param for sec y-axis
+            sec.axis = sec_axis(trans = ~. / mlp, name = secTitle)
+          )
+        )
+        
+      }else if(myp < mys){
+        #secondary is greater than primary
+        #get divider for sec
+        dv <- mys/myp
+        
+        barList <- list(
+          geom_bar(aes(y = eval(str2expression(ySec)) / dv), alpha = req(input$secAlpha), stat = "identity", fill = req(input$secCol), width = req(input$secWidth)),
+          
+          scale_y_continuous(
+            #param for sec y-axis
+            sec.axis = sec_axis(trans = ~. * dv, name = secTitle)
+          )
+        )
+      }
+      
+      #add thhem
+      list(
+        barList,
+        #theme
+        if(req(input$secTitleText) == "yes"){
+          theme(
+            axis.title.y.right = element_text(color = req(input$secCol), size=textTile),
+            axis.text.y.right = element_text(color = req(input$secCol), size=textSize)
+          )
+        }else{NULL}
+        
+      )
+      
+    }, error = function(e){
+      print(e)
+    })
+  })
+}
+
+#module point server
+modulePointSecSer <- function(id, df = NULL, ySec = NULL, yPr = NULL, 
+                              textSize = 15, textTile = 15, secTitle = "secondary title"){
+  moduleServer(id, function(input, output, session){
+    req(is.data.frame(df))
+    
+    tryCatch({
+      
+      #get the data for yPr and ySec
+      yPr_d <- reactiveVal(df[, yPr]) #vector
+      ySec_d <- reactiveVal(df[, ySec]) #vector
+      
+      #checks: both must be numeric
+      shiny::validate(
+        #this was taken care
+        need(all(is.numeric(yPr_d())), "Error: primary y-axis is non-numeric. Provide numeric column!"),
+        need(all(is.numeric(ySec_d())), "Error: secondary y-axis is non-numeric. Provide numeric column!")
+      )
+      #axis transformation: balance the dual axis
+      myp <- max(yPr_d())
+      mys <- max(ySec_d())
+      
+      if(myp > mys){
+        #primary is greater than sec
+        #get multiplier for sec
+        mlp <- myp/mys
+        
+        barList <- list(
+          geom_point(aes(y = eval(str2expression(ySec)) * mlp), alpha = req(input$secAlpha), color = req(input$secCol), size = req(input$secWidth)),
+          
+          scale_y_continuous(
+            #param for sec y-axis
+            sec.axis = sec_axis(trans = ~. / mlp, name = secTitle)
+          )
+        )
+        
+      }else if(myp < mys){
+        #secondary is greater than primary
+        #get divider for sec
+        dv <- mys/myp
+        
+        barList <- list(
+          geom_point(aes(y = eval(str2expression(ySec)) / dv), alpha = req(input$secAlpha), color = req(input$secCol), size = req(input$secWidth)),
+          
+          scale_y_continuous(
+            #param for sec y-axis
+            sec.axis = sec_axis(trans = ~. * dv, name = secTitle)
+          )
+        )
+      }
+      
+      #add thhem
+      list(
+        barList,
+        #theme
+        if(req(input$secTitleText) == "yes"){
+          theme(
+            axis.title.y.right = element_text(color = req(input$secCol), size=textTile),
+            axis.text.y.right = element_text(color = req(input$secCol), size=textSize)
+          )
+        }else{NULL}
+        
+      )
+      
+    }, error = function(e){
+      print(e)
+    })
+  })
+}
+
+
+#end module for dual y-axis-------------------
 #old version--------------
 # insetParamFunc <- function(inDf, oriDf, orix, oriTextLabel, finalPlt, color = "none", shape=NULL, line=NULL){
 #   # for name: depend only on x-axis
@@ -2141,28 +2665,31 @@ plotFig <- function(data, types = "reactive(input$plotType)", geom_type = "geom_
         "not provided" #if no color is provided
       }else{
         
+        
         #process the given color input by removing space and comma
         message("Processing color")
         inputC <- strsplit(str_trim(gsub(" |,", " ", colorTxt))," +")[[1]]
-        #Select only the required number of colors if user provide more than 
+        #Select only the required number of colors if user provide more than
         #the required number.
-        message(glue::glue("end of processing color: {inputC}"))
-        message(glue::glue("length of inputC: {length(inputC)}"))
-        message(glue::glue("countVar: {countVar}"))
-        
         if(length(inputC) > countVar){
           inputC[1:countVar]
-        }else{ inputC }
+        }else{ 
+          #get original color
+          oriCol <- scales::hue_pal()(countVar)
+          #remove first few color(s) from original based on the number of chosen color
+          oriCol2 <- oriCol[-(1:length(inputC))]
+          
+          #combine the choosen and original color
+          c(inputC,oriCol2)
+        }
       }
       
       message(glue::glue("edit length: {length(editC)}"))
       if(editC != "not provided" && length(editC) < countVar){
         #display the color of the global plot
-        message(glue::glue("editC less number : {editC}"))
-        message(glue::glue("edit length: {length(editC)}"))
         newPlt
       }else if(length(editC) == countVar){
-        message(glue::glue("editC final color: {editC}"))
+        
         #add color to the plot
         if(types %in% c("line", "frequency polygon", "scatter plot")){
           plt <- plt + scale_color_manual(values = tolower(editC))
