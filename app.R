@@ -2814,7 +2814,7 @@ server <- function(input, output, session){
     if(isTruthy(input$xTextLabel) && isTruthy(input$xTextLabelChoice) && !xVarType()[1] %in% c("integer", "numeric", "double")){
       #get name of variables in x-axis
       varName <- unique(as.data.frame(ptable())[,input$xAxis]) %>% as.vector() %>% sort()
-      varCount <- plyr::count(ptable(), vars = input$xAxis)$freq
+      varCount <- dplyr::count(as.data.frame(ptable()), .data[[input$xAxis]])$n
       
       #get name of variables user want to change
       userChoice <- if(req(input$xTextLabelChoice) == "All" || "All" %in% req(input$xTextLabelChoice)){
@@ -6460,32 +6460,36 @@ server <- function(input, output, session){
   #hover info for the plot
   observe({
     req(ptable(), pltType(), input$hover_info)
-    #add checks
-    req(c(input$xAxis, input$yAxis) %in% colnames(ptable()))
-
-    df <- nearPoints(ptable(), input$hover_info, xvar = req(input$xAxis), yvar = req(input$yAxis) )
-
-    output$hover_display <- renderPrint({
-      if(nrow(df) != 0){
-        #display only x and y variables
-        #include aesthetic if choosen
-        if(req(input$colorSet) == "none" && !isTruthy(input$shapeLine)){
-          ds <- df %>% select(.data[[input$xAxis]], .data[[input$yAxis]]) %>% as.data.frame()
-        }else if(req(input$colorSet) != "none"){
-          #override other aes by color
-          ds <- df %>% select(.data[[input$xAxis]], .data[[input$colorSet]], .data[[input$yAxis]]) %>% as.data.frame()
-        }else if(isTruthy(input$shapeLine)){
-          if(req(input$shapeLine) == "Shape"){
-            ds <- df %>% select(.data[[input$xAxis]], .data[[input$shapeSet]], .data[[input$yAxis]]) %>% as.data.frame()
-          }else{
-            ds <- df %>% select(.data[[input$xAxis]], .data[[input$lineSet]], .data[[input$yAxis]]) %>% as.data.frame()
+    tryCatch({
+      output$hover_display <- renderPrint({
+        
+        #add checks
+        req(c(input$xAxis, input$yAxis) %in% colnames(ptable()))
+        df <- nearPoints(ptable(), input$hover_info, xvar = req(input$xAxis), yvar = req(input$yAxis) )
+        if(nrow(df) != 0){
+          #display only x and y variables
+          #include aesthetic if choosen
+          if(req(input$colorSet) == "none" && !isTruthy(input$shapeLine)){
+            ds <- df %>% select(.data[[input$xAxis]], .data[[input$yAxis]]) %>% as.data.frame()
+          }else if(req(input$colorSet) != "none"){
+            #override other aes by color
+            ds <- df %>% select(.data[[input$xAxis]], .data[[input$colorSet]], .data[[input$yAxis]]) %>% as.data.frame()
+          }else if(isTruthy(input$shapeLine)){
+            if(req(input$shapeLine) == "Shape"){
+              ds <- df %>% select(.data[[input$xAxis]], .data[[input$shapeSet]], .data[[input$yAxis]]) %>% as.data.frame()
+            }else{
+              ds <- df %>% select(.data[[input$xAxis]], .data[[input$lineSet]], .data[[input$yAxis]]) %>% as.data.frame()
+            }
           }
+          
+          return(head(ds))
+          # as.data.frame(df)
         }
-
-        return(head(ds))
-        # as.data.frame(df)
-      }
-
+        
+        
+      })
+    }, error = function(e){
+      print(e)
     })
   })
 
