@@ -1538,7 +1538,8 @@ server <- function(input, output, session){
     #check that variables name are not the same
     varName <- lapply(1:varNum, function(x) eval(str2expression( paste0("input$Variable",x)) )) %>% unlist()
     validate(
-      need(length(unique(varName)) == length(varName), "Error: must not provide same group/variable name!")
+      need(length(unique(varName)) == length(varName), "Error: must not provide same group/variable name!"),
+      need(all(!c("replicate", "replicates") %in% tolower(varName)), "Error: must not provide 'replicate'/'replicates' as variable name!")
     )
     #all replicate columns provided?
     rCol <- all(
@@ -1569,7 +1570,7 @@ server <- function(input, output, session){
     message(str(numericCheck_df))
     #check
     validate(
-      need( all(lapply(numericCheck_df, str_detect, pattern = "^[:digit:]*$") %>% unlist()), "Error: must select only numeric columns!")
+      need( all(lapply(as.data.frame(numericCheck_df), str_detect, pattern = "^\\d*\\.?\\d*$") %>% unlist()), "Error: must select only numeric columns!")
     )
 
     #count the replicates for each group
@@ -1922,7 +1923,7 @@ server <- function(input, output, session){
 
     tryCatch({
       #get non-replicate data [if any (not all data will have variables other than replicates)]
-      noRep_df <- data %>% select(-repDetails) %>% as.data.frame()
+      noRep_df <- data %>% select(-all_of(repDetails)) %>% as.data.frame()
       #dummy data frame to collect the replicates data after iteration and processing for each variable.
       mergeData <- data.frame()
       #stopwatch for processing columns other than replicates (inside the function: tidyReplicate())
