@@ -4040,7 +4040,10 @@ server <- function(input, output, session){
       if(input$plotType == "none"){
         gridWrapInput(choice = NULL)
       }else{
-        gridWrapInput(choice = col(), selected = var)
+        req(input$yAxis %in% colnames(ptable()))
+        #provide only variables that has less than 50 unique row
+        varRowCol <- lapply( col()[col() != req(input$yAxis)], function(x, df){if(length( unique(df[,x, drop = T]) ) < 50) x}, df = ptable()) %>% unlist()
+        gridWrapInput(choice = varRowCol, selected = ifelse(var %in% varRowCol, var, character(0)))
       }
     })
 
@@ -4053,11 +4056,12 @@ server <- function(input, output, session){
         if(input$plotType == "none"){
           gridWrapInput(id = "varColumn", label = list("Facet column"), type = "grid", choice = NULL)
         }else{
-          # #checks: aded in processing graph
-          # validate(
-          #   need(length(col()) > 1 && req(input$varRow) != varC, "choose different variables")
-          # )
-          gridWrapInput(id = "varColumn", label = list("Facet column"), type = "grid", choice = col(), selected = varC)
+          #checks: aded in processing graph
+          req(input$yAxis %in% colnames(ptable()))
+          #provide only variables that has less than 50 unique row
+          varRowCol <- lapply( col()[col() != req(input$yAxis)], function(x, df){if(length( unique(df[,x, drop = T]) ) < 50) x}, df = ptable()) %>% unlist()
+          
+          gridWrapInput(id = "varColumn", label = list("Facet column"), type = "grid", choice = varRowCol, selected = ifelse(varC %in% varRowCol, varC, character(0)))
         }
       }
     })
