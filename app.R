@@ -3500,27 +3500,30 @@ server <- function(input, output, session){
 
     }
 
-    req(countVar > 2)
-    shinyalert(
-      inputId = "tw_alert",
-      title = "Message", #tags$b("Alert!", style = "color:red"),
-      html = TRUE,
-      text = tagList(tags$b("Data has more than 2 variables to compare. ANOVA may be more appropriate.", style = "color:red;"),
-                     # Continue anyway (may be slow)?", style = "color:red;"),
-                     tags$p(tags$b("Continue anyway (may be slow)?", style = "color:red;")),
-                     tags$p("If yes, it will reset aesthetic options", style = "font:italic")
-      ),
-      type = "warning",
-      closeOnClickOutside = TRUE,
-      showCancelButton = TRUE,
-      showConfirmButton = TRUE,
-      confirmButtonText = "No", #value : TRUE
-      confirmButtonCol = "#04D252",
-      cancelButtonText = "Yes", #value : FALSE
-      # cancelButtonCol = "#EE2B04",
-      animation = "pop",
-      immediate = TRUE
-    )
+    if(countVar > 2){
+      shinyalert(
+        inputId = "tw_alert",
+        title = "Message", #tags$b("Alert!", style = "color:red"),
+        html = TRUE,
+        text = tagList(tags$b("Data has more than 2 variables to compare. ANOVA may be more appropriate.", style = "color:red;"),
+                       # Continue anyway (may be slow)?", style = "color:red;"),
+                       tags$p(tags$b("Continue anyway (may be slow)?", style = "color:red;")),
+                       tags$p("If yes, it will reset aesthetic options", style = "font:italic")
+        ),
+        type = "warning",
+        closeOnClickOutside = TRUE,
+        showCancelButton = TRUE,
+        showConfirmButton = TRUE,
+        confirmButtonText = "No", #value : TRUE
+        confirmButtonCol = "#04D252",
+        cancelButtonText = "Yes", #value : FALSE
+        # cancelButtonCol = "#EE2B04",
+        animation = "pop",
+        immediate = TRUE
+      )
+    }else if(countVar <= 2){
+      stopTest(0)
+    }
   })
 
   observeEvent(input$tw_alert,{
@@ -3530,13 +3533,12 @@ server <- function(input, output, session){
       stopTest(0)
     }
   })
-
+  
   #reset the stopTest to default
   observe({
-    req(input$plotType, input$stat)
+    req(input$plotType, !input$stat %in% c("t.test", "wilcoxon.test"))
     stopTest(1)
   })
-
   # #update stat method--------------------------------
   #update stat if input parameters for data changed
   observe({
