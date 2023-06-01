@@ -319,6 +319,8 @@ mainSection <- div(
                                         uiOutput("UiLineGroupVar"),
                                         #ui for error bar size
                                         uiOutput("UiErrorBarSize"),
+                                        uiOutput("UiErrorBarWidth"),
+                                        uiOutput("UiErrorBarAlign"),
                                         #Ui to add color for error bar
                                         uiOutput("UiErrorBarColor")
                                       )
@@ -2810,11 +2812,14 @@ server <- function(input, output, session){
   })
   #get the input name and passed it to the figure function
   xTextLabel <- reactive({
-    #no need to proceed for numeric x-axis. It has no impact on labeling
-    req(!xVarType() %in% c("numeric", "double", "integer"))
+    # #no need to proceed for numeric x-axis. It has no impact on labeling
+    # req(!xVarType() %in% c("numeric", "double", "integer"))
+    #require to proceed even if x-axis is numeric, else inset wouldn't work.
     if(isTruthy(input$xTextLabel) && isTruthy(input$xTextLabelChoice) && !xVarType()[1] %in% c("integer", "numeric", "double")){
+      
       #get name of variables in x-axis
       varName <- unique(as.data.frame(ptable())[,input$xAxis]) %>% as.vector() %>% sort()
+      # varCount <- plyr::count(ptable(), vars = input$xAxis)$freq
       varCount <- dplyr::count(as.data.frame(ptable()), .data[[input$xAxis]])$n
       
       #get name of variables user want to change
@@ -2849,14 +2854,20 @@ server <- function(input, output, session){
     }else{
       #display the original name
       req(ptable())
-      # unique(as.data.frame(ptable())[,input$xAxis]) %>% as.vector() %>% sort()
+      
       varName <- unique(as.data.frame(ptable())[,input$xAxis]) %>% as.vector() %>% sort()
-      if(req(input$sampleSize) == "yes"){
-        varCount <- plyr::count(ptable(), vars = input$xAxis)$freq
-        #paste name and count 
-        lapply(1:length(varName), function(x, varName, varCount){glue::glue("{varName[x]}\n(n={varCount[x]})")}, varName = varName, varCount = varCount) %>% unlist()
-      }else{
+      if(!xVarType() %in% c("numeric", "double", "integer")){
         varName
+      }else{
+        
+        if(req(input$sampleSize) == "yes"){
+          varCount <- plyr::count(ptable(), vars = input$xAxis)$freq
+          #paste name and count
+          lapply(1:length(varName), function(x, varName, varCount){glue::glue("{varName[x]}\n(n={varCount[x]})")}, varName = varName, varCount = varCount) %>% unlist()
+        }else{
+          varName
+        }
+        
       }
       
     }
@@ -2972,7 +2983,19 @@ server <- function(input, output, session){
         sliderInput(inputId = "errorBarSize", label = "Error bar size", min = 0.1, max = 5, value = 1)
       }
     })
-
+    
+    output$UiErrorBarWidth <- renderUI({
+      if(isTruthy(input$lineErrorBar) && pltType() %in% c("line", "bar plot", "scatter plot")){
+        sliderInput(inputId = "errorBarWidth", label = "Error bar width", min = 0.01, max = 2, value = 0.2)
+      }
+    })
+    
+    output$UiErrorBarAlign <- renderUI({
+      if(isTruthy(input$lineErrorBar)){
+        sliderInput(inputId = "errorBarAlign", label = "Align error bar", min = 0.001, max = 1, value = 0.9)
+      }
+    })
+    
   })
 
   #variable to update the variable of x-axis
@@ -4044,7 +4067,7 @@ server <- function(input, output, session){
       }else{
         req(input$yAxis %in% colnames(ptable()))
         #provide only variables that has less than 50 unique row
-        varRowCol <- lapply( col()[col() != req(input$yAxis)], function(x, df){if(length( unique(df[,x, drop = T]) ) < 50) x}, df = ptable()) %>% unlist()
+        varRowCol <- lapply( col()[col() != req(input$yAxis)], function(x, df){if(length( unique(df[,x, drop = T]) ) < 30) x}, df = ptable()) %>% unlist()
         gridWrapInput(choice = varRowCol, selected = ifelse(var %in% varRowCol, var, character(0)))
       }
     })
@@ -4061,7 +4084,7 @@ server <- function(input, output, session){
           #checks: aded in processing graph
           req(input$yAxis %in% colnames(ptable()))
           #provide only variables that has less than 50 unique row
-          varRowCol <- lapply( col()[col() != req(input$yAxis)], function(x, df){if(length( unique(df[,x, drop = T]) ) < 50) x}, df = ptable()) %>% unlist()
+          varRowCol <- lapply( col()[col() != req(input$yAxis)], function(x, df){if(length( unique(df[,x, drop = T]) ) < 30) x}, df = ptable()) %>% unlist()
           
           gridWrapInput(id = "varColumn", label = list("Facet column"), type = "grid", choice = varRowCol, selected = ifelse(varC %in% varRowCol, varC, character(0)))
         }
