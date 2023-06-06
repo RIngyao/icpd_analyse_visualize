@@ -1709,8 +1709,11 @@ server <- function(input, output, session){
 
     #logical condition: AND or OR
     output$UiFilterAndOr <- renderUI({
-      if(length(input$varFilterOpts) > 1){
-        map(length(input$varFilterOpts)-1, ~fluidRow(
+      if(length(req(input$varFilterOpts)) > 1){
+        # browser()
+        message(length(input$varFilterOpts))
+        message(str(input$varFilterOpts))
+        map(1:(length(input$varFilterOpts)-1), ~fluidRow(
           prettyRadioButtons(
             inputId = paste0("filterLogical",.x),
             label = "Logical",
@@ -1721,8 +1724,9 @@ server <- function(input, output, session){
             selected = "AND"
           )
         ))
+        
       }
-
+      
     })
   })
 
