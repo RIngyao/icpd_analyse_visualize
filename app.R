@@ -2120,13 +2120,13 @@ server <- function(input, output, session){
   #variables for reshape
   output$trName <- renderUI({
     req(pInputTable$data, input$transform == "Yes")
-
+    
     if(req(input$replicatePresent) == "no"){
-      if(input$transform == "Yes") varSelectInput(inputId = "variables", label = "Specify the columns to reshape", data = pInputTable$data, multiple = TRUE)
+      if(input$transform == "Yes") selectInput(inputId = "variables", label = "Specify the columns to reshape", choices = colnames(pInputTable$data), multiple = TRUE)
     }else if(req(input$replicatePresent) == "yes" && isTruthy(input$replicateActionButton) && !is_empty(replicateData$df)){
-      if(input$transform == "Yes") varSelectInput(inputId = "variables", label = "Specify the columns to reshape", data = replicateData$df, multiple = TRUE)
+      if(input$transform == "Yes") selectInput(inputId = "variables", label = "Specify the columns to reshape", choices = colnames(replicateData$df), multiple = TRUE)
     }
-
+    
   }
   )
 
