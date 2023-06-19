@@ -1146,22 +1146,43 @@ ui <- fluidPage(
     div(class = "column column1"
     ),
     div(class = "column column2",
-        mainSection
+        mainSection,
+        #add footer note
+        tags$footer(
+          HTML('<p>  </p>'),
+          align = "left",
+          style = "height: 100px; background-color: #ffffff; border-top: solid 1px; margin-top: 20px",#f2f2f2;" #d9d9d9
+          #bottom: 10%;padding = 10px;
+          HTML('
+          <p>
+          <b>Citation:</b> <b>Jajo, R., Kansal, S., Balyan, S. & Raghuvanshi, S. </b>PlotS: web-based application for data visualization and analysis. bioRxiv 2023.06.09.544161 (2023).<cite><a href="https://www.biorxiv.org/content/10.1101/2023.06.09.544161v1" style = "font-size:17px"> doi:10.1101/2023.06.09.544161</a></cite>
+          </p>
+          
+          <p><b>Feedback:</b> <a href = "mailto: jajoringyao@gmail.com" style = "font-size:17px">send email</a></p>
+          <p><b> Bug report:</b> <a href="https://github.com/RIngyao/plotS" style = "font-size:17px"> GitHub</a></p>
+         ')
+        )#end of footer
     ),
     div(class = "column column3")
 
   ),
   #end of main content------------
 
-  #add footer note
-  tags$footer(
-    HTML('<p>  </p>'),
-    align = "center",
-    style = "
-  height: 100px;
-  background-color: #ffffff"#f2f2f2;" #d9d9d9
-    #bottom: 10%;padding = 10px;
-  )#end of footer
+  # #add footer note
+  # tags$footer(
+  #   HTML('<p>  </p>'),
+  #   align = "center",
+  #   style = "height: 100px; background-color: #ffffff",#f2f2f2;" #d9d9d9
+  #   #bottom: 10%;padding = 10px;
+  #   HTML('
+  #         <p>
+  #         <b>Citation:</b>
+  #         <p><b>Jajo, R., Kansal, S., Balyan, S. & Raghuvanshi, S. </b>PlotS: web-based application for data visualization and analysis. bioRxiv 2023.06.09.544161 (2023).<cite><a href="https://www.biorxiv.org/content/10.1101/2023.06.09.544161v1" style = "font-size:17px"> doi:10.1101/2023.06.09.544161</a></cite></p>
+  #         </p>
+  #         
+  #         <p><b>Feedback:</b> <a href = "mailto: jajoringyao@gmail.com" style = "font-size:17px">send email</a> <b> Bug report:</b> <a href="https://github.com/RIngyao/plotS" style = "font-size:17px"> GitHub</a></p>
+  #        ')
+  # )#end of footer
 
 )# end of fluidPage for UI
 

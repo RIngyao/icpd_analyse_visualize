@@ -10,7 +10,6 @@ options(shiny.maxRequestSize = 50*1024^2) # too large: use 50
 # lapply(libraries, library, character.only = TRUE)
 
 
-
 #dependencies managed using renv
 # lib <- c("shinyjs","shinyjqui","shiny.router","scales",
 #          "ggpp","ggside","ggforce","shinyBS","rlang",
@@ -20,6 +19,7 @@ options(shiny.maxRequestSize = 50*1024^2) # too large: use 50
 #          "ggpubr","multcompView","rstatix","shiny","tidyverse",
 #          "reactable","shinyalert", "shinyWidgets")
 # sort(lib)
+library(colourpicker)
 library(shinyalert)
 library(shinyjs)
 library(shinyjqui)
