@@ -1177,7 +1177,7 @@ ui <- fluidPage(
     ),
     div(class = "column column3")
 
-  ),
+  )
   #end of main content------------
 
   # #add footer note
