@@ -1,4 +1,4 @@
-
+#icpd
 source("global.R", local = TRUE)
 
 #visualize and analyze-------------
@@ -388,7 +388,7 @@ mainSection <- div(
                                           style = "padding: 0",
                                           column(9, textAreaInput(inputId = "colorAdd", label = "Enter colors",
                                                                   placeholder = "comma or space separated. \nE.g. red, #cc0000, BLUE", width='100%'),
-                                                 bsTooltip( id = "colorAdd", title = "comma or space separated. \nE.g. red, #cc0000, BLUE",placement = "bottom")
+                                                 bsTooltip( id = "colorAdd", title = "comma or space separated. E.g. red, #cc0000, BLUE",placement = "bottom")
                                           ),
                                           column(3, colourpicker::colourInput(inputId = "customePick", label = "click", showColour = "background",value = "red"),
                                                  bsTooltip(id="customePick", title = "Choose color", placement = 'bottom'))
@@ -3342,7 +3342,7 @@ server <- function(input, output, session){
     # browser()
     updateTextAreaInput(inputId = "colorAdd", label = glue::glue("Enter {countVar} colors"), value= if(is.null(costumePick())){character(0)} else req(costumePick()),
                         placeholder = "comma or space separated. \nE.g. red, #cc0000, BLUE")
-    addTooltip(session, id = "colorAdd", title = "comma or space separated. \nE.g. red, #cc0000, BLUE",placement = "bottom")
+    addTooltip(session, id = "colorAdd", title = "comma or space separated. E.g. red, #cc0000, BLUE",placement = "bottom")
     
   })
 
