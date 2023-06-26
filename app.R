@@ -48,10 +48,15 @@ mainSection <- div(
                                helpText("You can specify more than one missing values. 'NA' and empty cell are treated as missing values by default.", style = "margin-top:0;"),#, style= "margin-bottom:15px; margin-top:0; color:black; background-color:#D6F4F7; border-radius:5%; text-align:center;"),
                                # uiOutput("UiRemRepNA")
                                {
-                                 naOpt <- list(tags$span("Remove NA", style = "font-weight:bold; color:#0099e6"),
-                                               tags$span("Replace with 0", style = "font-weight:bold; color:#0099e6"))
-                                 radioButtons(inputId = "remRepNa", label = NULL, choiceNames = naOpt, choiceValues = c("remove", "replace"), inline = TRUE)
-                               }
+                                 naOpt <- list(tags$span("Replace with 0", style = "font-weight:bold; color:#0099e6"),
+                                               tags$span("Impute methods",style = "font-weight:bold; color:#0099e6"),
+                                               tags$span("Remove NA", style = "font-weight:bold; color:#0099e6"))
+                                 radioButtons(inputId = "remRepNa", label = NULL, choiceNames = naOpt, choiceValues = c("replace", "impute", "remove"), inline = TRUE)
+                               },
+                               #more impute methods: if user choose impute methods
+                               conditionalPanel(condition = "input.remRepNa == 'impute'",
+                                                selectInput(inputId = "imputeMethods", label = "Methods", choices = list(`Common methods` = sort(c("mean", "median", "mode")), `Advance methods` = sort(c("predictive mean matching","classification and regression tree", "lasso linear regression", "linear regression", "random forest", "bayesian linear regression"))))
+                                                )
 
                              )
             ),
@@ -137,7 +142,7 @@ mainSection <- div(
                              tags$span("Yes", style = "font-weight:bold; color:#0099e6"))
               radioButtons(inputId = "transform", label = "Reshape wide to long format", choiceNames = trsOpt, choiceValues = c("No", "Yes"), inline = TRUE)
             }),
-            bsTooltip(id= "transform", title = "Input data for graph should be in long format. Apply reshape if data is in wide format.", options = list(container = "body")),
+            bsTooltip(id= "transform", title = "Long format data is recommended for most of the graph. Apply reshape if data is in wide format.", options = list(container = "body")),
             # selectInput(inputId = "transform", label = "Reshape the data", choi, selected = "No"),
             conditionalPanel(condition = "input.transform == 'Yes'",
                              # helpText(list(tags$p("Reshape will transpose column to row (long formate)."), tags$p("It facilitate comparison between variables.")), style= "color:black; margin-top:0; background-color:#D6F4F7; border-radius:5%; text-align:center;")),
@@ -458,6 +463,17 @@ mainSection <- div(
                                                            radioButtons(inputId = "pairedData", label = "Paired data", inline = TRUE,
                                                                         choiceNames = dataTypeList, choiceValues = list("no", "yes"))
                                                          }
+                                        ),
+                                        conditionalPanel(condition = "input.stat == 't.test' || input.stat == 'wilcoxon.test'",
+                                                         {
+                                                           #use the same ui for ANOVA: it has to update in the server logic
+                                                           hypothesis <- list(two.sided = "two.sided", one.sided = c("greater", "less"))
+                                                           
+                                                           selectInput(inputId = "alternativeHypothesis", label = "Alternative hypothesis", choice = hypothesis, multiple =FALSE, selected = "two.sided")
+                                                         },
+                                                         # bsTooltip(id = "alternativeHypothesis", title = "Must not choose alternative hypothesis for the sole purpose of attaining significance", placement = "top"),
+                                                         helpText("Must not choose alternative hypothesis for the sole purpose of attaining significance",
+                                                                  style= "margin-top:0; margin-bottom:20px; border-radius:10%; color:#921802; text-align:center; padding:auto; background-color:rgba(252, 198, 116, 0.2)")
                                         ),
 
                                         uiOutput("UiAlertPairedData"),
@@ -1392,11 +1408,17 @@ server <- function(input, output, session){
                         "rds" = readRDS(upPath()$datapath, na = naList))
 
 
-        #remove or replace na
-        if(input$remRepNa == "remove"){
-          pData1 <- na.omit(up_df) %>% as.data.frame()
-        }else if(input$remRepNa == "replace"){
+        #manage missing values
+        if(input$remRepNa == "replace"){
           pData1 <- up_df %>% mutate_all(., ~replace(., is.na(.), 0)) %>% as.data.frame()#mutate_if(is.numeric, ~ replace(., is.na(.), 0)) %>% as.data.frame()
+        }else if(input$remRepNa == "impute"){
+          #list(Common = c("mean", "median", "mode"), Advance = c("predictive mean matching", "classification and regression tree", "lasso linear regression", "miss forest"))
+          req(input$imputeMethods)
+          #common
+          pData1 <- imputeFunc(df = up_df, method = input$imputeMethods)
+          
+        }else if(input$remRepNa == "remove"){
+          pData1 <- na.omit(up_df) %>% as.data.frame()
         }
 
         #column name starting with number must be reported and stop execution
@@ -2261,7 +2283,7 @@ server <- function(input, output, session){
   #update data transformation: normalization and standardization
   observe({
     # need(unequalReplicateError() == 0 && replicateError() == 0 && reshapeError() == 0, "wait")
-    req(input$replicatePresent, replicateError(), input$transform, reshapeError())
+    req(input$pInput, input$replicatePresent, replicateError(), input$transform, reshapeError())
     # browser()
     if( (input$replicatePresent == "yes" && isTruthy(input$replicateActionButton) && replicateError() == 1) | (input$transform == "Yes" && isTruthy(input$goAction) && reshapeError() == 1) ){
       updateSelectInput(inputId = "normalizeStandardize", label = "Transform", choices = "none")
@@ -2278,7 +2300,7 @@ server <- function(input, output, session){
     output$UiNsNumVar <- renderUI({
       if(is.data.frame(bf_ptable()) && !input$normalizeStandardize %in% c("none","box-cox")){
         numVar <- allNumCharVar(checks="integer", data = bf_ptable())
-        selectInput(inputId = "nsNumVar", label = "Variable to transform", choices = numVar)
+        selectInput(inputId = "nsNumVar", label = "Variable to transform", choices = numVar, multiple = TRUE)
       }
     })
 
@@ -2292,7 +2314,7 @@ server <- function(input, output, session){
     output$UiNsNumVar2 <- renderUI({
       if(is.data.frame(bf_ptable()) && input$normalizeStandardize == "box-cox"){
         numVar <- allNumCharVar(checks="integer", data = bf_ptable())
-        selectInput(inputId = "nsNumVar2", label = "Numeric variable", choices = numVar)
+        selectInput(inputId = "nsNumVar2", label = "Numeric variable", choices = numVar, multiple = TRUE)
       }
     })
 
@@ -2346,7 +2368,7 @@ server <- function(input, output, session){
   transformationError <- reactiveVal(0)
   ns_ptable <- eventReactive(req(isTruthy(input$nsActionButton)), {
     if(ns_input() != 'none'){
-
+      
       #get variables for transformation
       if(ns_input() == 'box-cox'){
         req(input$nsCatVar, input$nsNumVar2)
@@ -2362,13 +2384,23 @@ server <- function(input, output, session){
         cVar <- NULL
         nVar <- input$nsNumVar
       }
-
+      
       #transformed given numeric variable
       message("inside ns and table")
       tryCatch({
-
-        ns_df <- ns_func(data = bf_ptable(), ns_method = ns_input(), x = cVar, y = nVar)
-
+        #dummy
+        ns_df <- as.data.frame(matrix(nrow = nrow(bf_ptable()), ncol = ncol(bf_ptable())))
+        # x <- as.data.frame(matrix(nrow = nrow(ToothGrowth), ncol = ncol(ToothGrowth)), dimnames = list(c(rep(ns_df,nrow(ToothGrowth))), c(colnames(ToothGrowth))))
+        #loop 
+        for(i in 1:length(nVar)){
+          df_transform <- ns_func(data = bf_ptable(), ns_method = ns_input(), x = cVar, y = nVar[i])
+          if(all(is.na(ns_df))){
+            ns_df <- df_transform
+          }else{
+            ns_df[, nVar[i]] <-df_transform[, nVar[i]] 
+          }
+        }
+        
         transformationError(0)
       }, error = function(e){
         transformationError(1)
@@ -2377,7 +2409,7 @@ server <- function(input, output, session){
           need(transformationError() == 0, glue::glue("{e}"))
         )
       })
-
+      
       message("transofrm done]]]]]]]]]]]]]]]]]")
       ns_df
     }
@@ -2832,7 +2864,7 @@ server <- function(input, output, session){
     updateSelectInput(inputId = "xTextLabelChoice", label = "Change name for", choices = c(cVar), selected = "ALL")
 
     output$uiXAxisTextLabel <- renderUI({
-
+      req(xVarType())
       #x-axis must not be numeric
       req(!xVarType()[1] %in% c("integer", "numeric", "double"))
 
@@ -6069,8 +6101,8 @@ server <- function(input, output, session){
             generateStatData(data = ptable(), groupStat = groupStat(), groupVar = groupStatVarOption(),
                              method = methodSt(), numericVar = numericVar(),
                              catVar = catVar(), compRef = compareOrReference(),
-                             ttestMethod = ttestMethod(), paired = pairedData(),
-                             model = model(), pAdjust = pAdjust(),
+                             ttestMethod = ttestMethod(), paired = pairedData(), alternative = req(input$alternativeHypothesis),
+                             model = model(), pAdjust = pAdjust(), 
                              pAdjustMethod = pAdjustMethod(), labelSignif = labelSt(), cmpGrpList = cmpGrpList$lists, rfGrpList = rfGrpList$lists,# switchGrpList = switchGrpList$switchs,
                              xVar = xyAxis()[[1]], anovaType = anovaType())#, ssType = ssType())
           })
@@ -6307,9 +6339,18 @@ server <- function(input, output, session){
         # str_detect("object 'sData1' not found", "sData1")
         validate(
           need(
-            finalPltError() == 0, if(str_detect(finalPltErrorMsg()$message, "sData1|undefined columns selected")){
+            finalPltError() == 0, if(str_detect(finalPltErrorMsg()$message, "object 'aovX' not found|undefined columns selected")){
               ""
-            }else{ finalPltErrorMsg()$message }
+            }else{ 
+              
+              if(!is.null(finalPltErrorMsg()$parent)){
+                #require when not enoug x observations error for t test and wilcoxon test
+                finalPltErrorMsg()$parent$message
+              }else{
+                finalPltErrorMsg()$message
+              }
+              
+            }
           )
         )
         NULL

@@ -1,4 +1,4 @@
-
+#icpd
 options(shiny.maxRequestSize = 50*1024^2) # too large: use 50
 #library--------------------------------
 #can't use this method for loading library: shinyapps.io
@@ -134,6 +134,48 @@ waitNotify <- function(msg = "... Please wait..", id = NULL, type = "message"){
 #     actionButton("test_continue", "Yes", class = "btn btn-danger")
 #   )
 # )
+
+#function for imputation------------
+"arguments:
+df = data frame.
+method = character. imputation methods - mean, median, mode, pam, cart, lasso, miss forest
+
+return: data frame (same dimension as input df)"
+imputeFunc <- function(df, method){
+  
+  #numeric class
+  nmCls <- c("numeric", "integer", "double")
+  #execute
+  df_managed <- switch(
+    EXPR = method,
+    
+    "mean" = df %>% mutate_all(., ~replace(., is.na(.), 
+                                           #check numeric and categorical
+                                           ifelse(class(.) %in% nmCls, round(mean(as.numeric(.), na.rm=T), 2), "NA")
+    )
+    ) %>% as.data.frame(),
+    "median" = df %>% mutate_all(., ~replace(., is.na(.), 
+                                             #check numeric and categorical
+                                             ifelse(class(.) %in% nmCls, round(median(as.numeric(.), na.rm=T), 2), "NA")
+    )
+    ) %>% as.data.frame(),
+    "mode" = df %>% mutate_all(., ~replace(., is.na(.), 
+                                           #check numeric and categorical
+                                           ifelse(class(.) %in% nmCls, as.numeric(names(sort(table(.), decreasing =T)[1])),
+                                                  names(sort(table(.), decreasing =T)[1]) )
+    )
+    ) %>% as.data.frame(),
+    #advance
+    "predictive mean matching" = mice::complete(mice::mice(df, method = "pmm",  m= 1, maxit = 1)),
+    "classification and regression tree" = mice::complete(mice::mice(df, method = "cart",  m= 1, maxit = 1)),
+    "lasso linear regression" = mice::complete(mice::mice(df, method = "lasso.norm",  m= 1, maxit = 1)),
+    "linear regression" = mice::complete(mice::mice(df, method = "norm.predict",  m= 1, maxit = 1)),
+    "random forest" = mice::complete(mice::mice(df, method = "rf",  m= 1, maxit = 1)),
+    "bayesian linear regression" = mice::complete(mice::mice(df, method = "norm",  m= 1, maxit = 1)),
+  )
+  
+  return(df_managed)
+}
 
 #module for side graph-----------------
 sideGraphList <- c("density", "bar plot", "box plot", "scatter plot", "frequency", "violin plot")
@@ -1538,7 +1580,7 @@ x = character. variable of x-axis. Require only for box-cox.
 y = chharacter. variable of y-axis.
 "
 ns_func <- function(data, ns_method, x=NULL, y){
-  #remove na: this was supposed to have been taken care in the beginning, if not ,removed it 
+  #remove na: this was supposed to have been taken care in the beginning, if not ,removed it
   # browser()
   data <- na.omit(data)
   #if data has 0 than add +1
@@ -1546,33 +1588,32 @@ ns_func <- function(data, ns_method, x=NULL, y){
     data[, y] <- data[y]+1
   }
   
-  
-  if(ns_method == "log2"){ 
-  
-    new_df <- data %>% mutate( log2 = log2(.data[[y]]) )
+  if(ns_method == "log2"){
+    
+    new_df <- data %>% mutate( log2 = round(log2(.data[[y]]),3) )
     
   }else if(ns_method == "log10"){
-  
-    new_df <- data %>% mutate( log10 = log10(.data[[y]]) ) #log10(y)
+    
+    new_df <- data %>% mutate( log10 = round(log10(.data[[y]]),3) ) #log10(y)
     
   }else if(ns_method == "square-root"){
-  
-    new_df <- data %>% mutate( sqrt = sqrt(.data[[y]]) )#sqrt(y)
+    
+    new_df <- data %>% mutate( sqrt = round(sqrt(.data[[y]]),3) )#sqrt(y)
     
   }else if(ns_method == "box-cox"){
     #determine model
     bc <- with(data, car::boxCox(eval(parse(text = y)) ~ eval(parse(text = x)), plotit = FALSE))
-  
+    
     #optimal lambda value
     opt_lba <- bc$x[which.max(bc$y)]
     message("transformed")
     #transform
-    new_df <- data %>% mutate( box_cox = ((.data[[y]]^opt_lba-1)/opt_lba) )
+    new_df <- data %>% mutate( box_cox = round( ((.data[[y]]^opt_lba-1)/opt_lba), 3 ) )
     
   }else{
     
     #scale
-    new_df <- data %>% mutate( scale = scale(.data[[y]]) )#scale(y)
+    new_df <- data %>% mutate( scale = round(scale(.data[[y]]),3) )#scale(y)
     
   }
   
@@ -1580,7 +1621,7 @@ ns_func <- function(data, ns_method, x=NULL, y){
   new_df[, y] <- new_df[, ncol(new_df)]
   new_df <- new_df[, -ncol(new_df)] #remove the duplicate transform column
   return(new_df)
-}
+} 
 #standard deviation-------------------
 "function to compute standard deviation (sd), standard error (se) and confidence interval (ci)
             arguments:
@@ -1980,6 +2021,7 @@ computeFuncErrorMsg <- reactiveVal(NULL)
   catVar = character. It can be single or vector. independant variable
   compRef = character. variable for comparing or a reference group
   pairedD = logical. whether data is paired or unpaired
+  alternative = character. Alternative hypothesis - two tail or one tail (less or greater)
   anovaType = character. type of anova: one-way (one) or two-way (two)
   ttestMethod = character. welch or student's test
 
@@ -1987,15 +2029,13 @@ computeFuncErrorMsg <- reactiveVal(NULL)
 
 computFunc <- function(data = "data", method = "none", numericVar = "numericVar()",
                        catVar = "catVar()", compRef = "none",
-                       pairedD = "pairedData", anovaType = "anovaType()", 
-                       ttestMethod = FALSE, ssType="I", 
-                       model = "model", cmpGrpList = NULL, rfGrpList=NULL,
-                       pAdjust = TRUE, pAdjustMethod='none'){ #switchGrpList = 0,
-  # browser()
+                       pairedD = "pairedData", anovaType = "anovaType()",
+                       ttestMethod = FALSE, alternative = "two.sided",
+                       model = "model", cmpGrpList = NULL, rfGrpList=NULL, 
+                       pAdjust = TRUE, pAdjustMethod='none'){ 
   message("entering computFunc()------------")
   message("catVar---------")
   message(catVar)
-  message("for formula")
   #formula: dependent (numeric) ~ independent (factor)
   #need to use reformulate() from stats package to use in formula
   if(method == "anova"){
@@ -2003,22 +2043,18 @@ computFunc <- function(data = "data", method = "none", numericVar = "numericVar(
     forml <- reformulate(response = glue::glue("{numericVar}"), termlabels = glue::glue("{indepVar}"))
   }else{
     message("formula-deriving")
-    message(numericVar)
-    forml <- reformulate(response = glue::glue("{numericVar}"), termlabels = glue::glue("{catVar}")) 
+    forml <- reformulate(response = glue::glue("{numericVar}"), termlabels = glue::glue("{catVar}"))
   }
   
   #get the list for comparison and reference group
   if(method %in% c("t.test", "wilcoxon.test")){
     
     message("312wreference")
-    message(glue::glue("referencegr3: {compRef}"))
     ref <- if(compRef == "reference group"){
       
       if(is_empty(rfGrpList)){
-        message("empty ref\\")
         NULL
       }else {
-        message("reference stage++")
         rfGrpList
       }
     }else { NULL }
@@ -2034,24 +2070,16 @@ computFunc <- function(data = "data", method = "none", numericVar = "numericVar(
     }else { NULL }
     
     message("after compRef=================")
-    message(glue::glue("compRef: {cmp}, {ref}"))
   }
   #hard coded: revise
   if(method == "t.test"){
-    message("forml=-=--")
     message("ttestMethod complete33")
     # browser()
-    # message(str(data))
-    # print(data)
-    message(forml)
-    message(ttestMethod)
-    message(pAdjustMethod) 
-    message(pairedD)
-    message(cmp)
     test <- rstatix::t_test(data, formula = forml,
-           ref.group = unlist(ref), 
-           comparisons = cmp, p.adjust.method = pAdjustMethod,
-           paired = pairedD, var.equal = ttestMethod #welch's =FALSE, or student's test = TRUE
+                            ref.group = unlist(ref),
+                            comparisons = cmp, p.adjust.method = pAdjustMethod,
+                            alternative = alternative,
+                            paired = pairedD, var.equal = ttestMethod #welch's =FALSE, or student's test = TRUE
     )
     
     message("ttest done2 ")
@@ -2062,12 +2090,12 @@ computFunc <- function(data = "data", method = "none", numericVar = "numericVar(
     
   }else if(method == "wilcoxon.test"){
     message("formlw=-=--")
-    message('start')
     test <- rstatix::wilcox_test(data = data, formula = forml,
-                ref.group = unlist(ref), #if(compRef == "none"){NULL}else{if(switchGrpList == 0) NULL else .data[[cmpGrpList]]},
-                comparisons = cmp, #if(compRef == "none"){NULL}else if(compRef == "comparions"){if(switchGrpList == 0) NULL else cmpGrpList},
-                paired = pairedD,
-                p.adjust.method = pAdjustMethod)
+                                 ref.group = unlist(ref), #if(compRef == "none"){NULL}else{if(switchGrpList == 0) NULL else .data[[cmpGrpList]]},
+                                 comparisons = cmp, #if(compRef == "none"){NULL}else if(compRef == "comparions"){if(switchGrpList == 0) NULL else cmpGrpList},
+                                 paired = pairedD,
+                                 alternative = alternative,
+                                 p.adjust.method = pAdjustMethod)
     message("done------")
     #global
     testTable$df <<- test %>% as.data.frame()
@@ -2085,12 +2113,12 @@ computFunc <- function(data = "data", method = "none", numericVar = "numericVar(
       anova <- aov(data=data, formula=forml)
     }
     
-    anovaTable <- parameters::model_parameters(anova) %>% as.data.frame() 
+    anovaTable <- parameters::model_parameters(anova) %>% as.data.frame()
     
     #rename the column. Global data
     message(glue::glue("renaming anova table------"))
     #This will be used as summary data and for further analysis
-    # testTable$df <<- rename(anovaTable,"DFn" = "Df", "DFd" = "Df_residual") 
+    # testTable$df <<- rename(anovaTable,"DFn" = "Df", "DFd" = "Df_residual")
     testTable$df <<- anovaTable
     
     message(glue::glue("------catVar: {catVar}-------"))
@@ -2110,7 +2138,7 @@ computFunc <- function(data = "data", method = "none", numericVar = "numericVar(
       message(glue::glue("multcompletter finished-----==="))
       
       #Determine the mean and position for labeling
-      meanLabPos <- data %>% group_by(!!!rlang::syms(catVar)) %>% 
+      meanLabPos <- data %>% group_by(!!!rlang::syms(catVar)) %>%
         summarise(mean = mean(!!!rlang::syms(numericVar)), quantl = quantile(!!!rlang::syms(numericVar), probs =1, na.rm=TRUE))
       
       #add mean to the new_tk and sort it based on the mean: #####not for aov this is require so that letter is in the order of mean (ascending)
@@ -2122,7 +2150,7 @@ computFunc <- function(data = "data", method = "none", numericVar = "numericVar(
       mcl <- multcompLetters(pval)
       mcl2 <- as.data.frame.list(mcl)
       
-      #convert rowName to variable 
+      #convert rowName to variable
       col <- unlist(catVar)
       mcl2[col] <- rownames(mcl2)
       
@@ -2140,16 +2168,16 @@ computFunc <- function(data = "data", method = "none", numericVar = "numericVar(
         #non-additive----------
         message("entering non-aditive2))))))")
         #using base aov
-        av <- aov(data=data, formula=forml) 
+        av <- aov(data=data, formula=forml)
         
         #compare the mean: using base TukeyHSD()
-        tukey_df <- TukeyHSD(av) 
+        tukey_df <- TukeyHSD(av)
         #get compact letter
         # check for error: any error in name arguments will occur here (Estimated effects may be unbalanced)
         tryCatch({
           clt <- multcompLetters4(av, tukey_df)
           computeFuncError(0)
-        }, error= function(e){ 
+        }, error= function(e){
           computeFuncError(1)
           computeFuncErrorMsg(e)
           validate(
@@ -2160,7 +2188,7 @@ computFunc <- function(data = "data", method = "none", numericVar = "numericVar(
         
         #Determine the mean and position for labeling: interaction, group1 and group2
         #interaction
-        meanLabPos <- data %>% group_by(!!!rlang::syms(catVar)) %>% 
+        meanLabPos <- data %>% group_by(!!!rlang::syms(catVar)) %>%
           summarise(mean = mean(!!!rlang::syms(numericVar)), quantl = quantile(!!!rlang::syms(numericVar), probs =1, na.rm=TRUE)) %>%
           #sort is descending: one-way is sorted in ascending order
           arrange(desc(mean)) %>%
@@ -2168,7 +2196,7 @@ computFunc <- function(data = "data", method = "none", numericVar = "numericVar(
           select(!!!rlang::syms(catVar), everything())
         
         #group1
-        meanLabPos1 <- data %>% group_by(!!!rlang::syms(catVar[1])) %>% 
+        meanLabPos1 <- data %>% group_by(!!!rlang::syms(catVar[1])) %>%
           summarise(mean = mean(!!!rlang::syms(numericVar)), quantl = quantile(!!!rlang::syms(numericVar), probs =1, na.rm=TRUE)) %>%
           #sort is descending: one-way is sorted in ascending order
           arrange(desc(mean)) %>%
@@ -2176,13 +2204,13 @@ computFunc <- function(data = "data", method = "none", numericVar = "numericVar(
           select(!!!rlang::syms(catVar[1]), everything())
         
         #group2
-        meanLabPos2 <- data %>% group_by(!!!rlang::syms(catVar[2])) %>% 
+        meanLabPos2 <- data %>% group_by(!!!rlang::syms(catVar[2])) %>%
           summarise(mean = mean(!!!rlang::syms(numericVar)), quantl = quantile(!!!rlang::syms(numericVar), probs =1, na.rm=TRUE)) %>%
           #sort is descending: one-way is sorted in ascending order
           arrange(desc(mean)) %>%
           #placed the groups in the first column
           select(!!!rlang::syms(catVar[2]), everything())
-         
+        
         
         #global save for additive figure for different groups
         # aovFigure_1_2 <<- av #anova
@@ -2190,7 +2218,7 @@ computFunc <- function(data = "data", method = "none", numericVar = "numericVar(
         aovMeanLabPos <<- meanLabPos #mean table
         aovClt <<- clt #compact letter
         
-        #get the compact letter 
+        #get the compact letter
         clt_n1 <- as.data.frame.list(clt[[1]]) #group1
         clt_n1$lab <- rownames(clt_n1)
         clt_n2 <- as.data.frame.list(clt[[2]]) #group2
@@ -2228,12 +2256,12 @@ computFunc <- function(data = "data", method = "none", numericVar = "numericVar(
         #additive model---------------------
         message("enter aditive))))))")
         #using base aov
-        av <- aov(data=data, formula=forml) 
+        av <- aov(data=data, formula=forml)
         
         #Determine the mean and position for labeling
         #group1
         
-        meanLabPos1 <- data %>% group_by(!!!rlang::syms(catVar[1])) %>% 
+        meanLabPos1 <- data %>% group_by(!!!rlang::syms(catVar[1])) %>%
           summarise(mean = mean(!!!rlang::syms(numericVar)), quantl = quantile(!!!rlang::syms(numericVar), probs =1, na.rm=TRUE)) %>%
           #sort is descending: one-way is sorted in ascending order
           arrange(desc(mean)) %>%
@@ -2241,7 +2269,7 @@ computFunc <- function(data = "data", method = "none", numericVar = "numericVar(
           select(!!!rlang::syms(catVar[1]), everything())
         
         #group2
-        meanLabPos2 <- data %>% group_by(!!!rlang::syms(catVar[2])) %>% 
+        meanLabPos2 <- data %>% group_by(!!!rlang::syms(catVar[2])) %>%
           summarise(mean = mean(!!!rlang::syms(numericVar)), quantl = quantile(!!!rlang::syms(numericVar), probs =1, na.rm=TRUE)) %>%
           #sort is descending: one-way is sorted in ascending order
           arrange(desc(mean)) %>%
@@ -2300,8 +2328,8 @@ computFunc <- function(data = "data", method = "none", numericVar = "numericVar(
     
     #Kruskal test------------------
     message("Kruskal test on2")
-    allMean <- data %>% group_by(!!!rlang::syms(catVar)) %>% 
-      summarise(mean = mean(!!!rlang::syms(numericVar)), quantl = quantile(!!!rlang::syms(numericVar), probs =1, na.rm=TRUE)) 
+    allMean <- data %>% group_by(!!!rlang::syms(catVar)) %>%
+      summarise(mean = mean(!!!rlang::syms(numericVar)), quantl = quantile(!!!rlang::syms(numericVar), probs =1, na.rm=TRUE))
     #do the test
     kstat <- rstatix::kruskal_test(data=data, formula = forml)
     message("entering post hoc kruskal")
@@ -2445,15 +2473,15 @@ efS <- function(x = c("OJ", "VC"), v = "supp", y = "len", dt = ToothGrowth, meth
 generateStatData <- function(data = "ptable()", groupStat = "groupStat()", groupVar = "groupStatVarOption()",
                              method = "none", numericVar = "numericVar()",
                              catVar = "catVar()", compRef = "none",
-                             pairedD = "pairedData", pAdjust = TRUE, 
+                             pairedD = "pairedData", pAdjust = TRUE,
                              ttestMethod=FALSE, #welch or student's test
+                             alternative = "two.sided",
                              model = "model", #model of anova
                              pAdjustMethod = NULL, labelSignif = "labelSt()",
                              cmpGrpList = NULL, rfGrpList = NULL, #switchGrpList = 0, #for ref.group and comparison: global list
                              xVar = "xyAxis()[[1]]", anovaType = "anovaType", ssType ="I"){
-  #convert the x-axis or group_by variable to factor.  
+  #convert the x-axis or group_by variable to factor.
   #converting to factor is necessary for further processing
-  # browser()   
   message("entering generateStatData()-------------------")
   #for anova, every independent variable has to be a factor
   #for other tests, it will depend on the type of computation
@@ -2478,26 +2506,23 @@ generateStatData <- function(data = "ptable()", groupStat = "groupStat()", group
   
   message("converted to factor------------------------------")
   #apply stat and get the final data
-  tryCatch({
-    sData1 <- if(groupStat %in% c("no", "do nothing")){
-      message(glue::glue("start sData1:--"))
-      data %>% 
-        #choose stat methods and apply
-        #formula: independent (numeric) ~ dependent (factor)
-        computFunc(data = ., method = method, numericVar = numericVar, catVar = catVar, compRef = compRef, 
-                   paired = pairedD, ttestMethod = ttestMethod,
-                   model = model, anovaType = anovaType, #ssType = ssType, 
-                   cmpGrpList = cmpGrpList, rfGrpList = rfGrpList, pAdjust = pAdjust, pAdjustMethod= pAdjustMethod) #switchGrpList = switchGrpList,
-      
-    }else if(groupStat == "yes"){
-      message("running groupby----------")
-      data %>% group_by(!!!rlang::syms(groupVar)) %>%
-        #choose stat methods and apply
-        computFunc(data = ., method = method, numericVar = numericVar, catVar = catVar, compRef = compRef, 
-                   paired = pairedD, ttestMethod = ttestMethod, anovaType = anovaType, pAdjustMethod = pAdjustMethod)
-    }
-  }, error = function(e){print(e)})
-  
+  sData1 <- if(groupStat %in% c("no", "do nothing")){
+    message(glue::glue("start sData1:--"))
+    data %>%
+      #choose stat methods and apply
+      #formula: independent (numeric) ~ dependent (factor)
+      computFunc(data = ., method = method, numericVar = numericVar, catVar = catVar, compRef = compRef,
+                 paired = pairedD, ttestMethod = ttestMethod, alternative = alternative,
+                 model = model, anovaType = anovaType, #ssType = ssType,
+                 cmpGrpList = cmpGrpList, rfGrpList = rfGrpList, pAdjust = pAdjust, pAdjustMethod= pAdjustMethod) #switchGrpList = switchGrpList,
+    
+  }else if(groupStat == "yes"){
+    message("running groupby----------")
+    data %>% group_by(!!!rlang::syms(groupVar)) %>%
+      #choose stat methods and apply
+      computFunc(data = ., method = method, numericVar = numericVar, catVar = catVar, compRef = compRef,
+                 paired = pairedD, ttestMethod = ttestMethod, alternative = alternative, anovaType = anovaType, pAdjustMethod = pAdjustMethod)
+  }
   
   
   if(!method %in% c("anova", "kruskal-wallis")){
@@ -2506,14 +2531,14 @@ generateStatData <- function(data = "ptable()", groupStat = "groupStat()", group
     pAdj <- if(isTRUE(pAdjust)){
       pAdjustMethod
     }else{"none"}
-      
+    
     sData2 <- sData1 %>%
-        #add p adjusted value column 
-        adjust_pvalue(method = pAdj) %>%
-        #add significance to the data frame column: default - p-adjusted value; user can opt for p-value
-        add_significance(p.col = "p.adj") %>%
-        #determine and add x and y position for labeling significance
-        add_xy_position(x = xVar, dodge = 0.8)
+      #add p adjusted value column
+      adjust_pvalue(method = pAdj) %>%
+      #add significance to the data frame column: default - p-adjusted value; user can opt for p-value
+      add_significance(p.col = "p.adj") %>%
+      #determine and add x and y position for labeling significance
+      add_xy_position(x = xVar, dodge = 0.8)
     
     sData2$p.adj <- round(sData2$p.adj, 3)
     
