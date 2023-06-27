@@ -166,12 +166,12 @@ imputeFunc <- function(df, method){
     )
     ) %>% as.data.frame(),
     #advance
-    "predictive mean matching" = mice::complete(mice::mice(df, method = "pmm",  m= 1, maxit = 1)),
-    "classification and regression tree" = mice::complete(mice::mice(df, method = "cart",  m= 1, maxit = 1)),
-    "lasso linear regression" = mice::complete(mice::mice(df, method = "lasso.norm",  m= 1, maxit = 1)),
-    "linear regression" = mice::complete(mice::mice(df, method = "norm.predict",  m= 1, maxit = 1)),
-    "random forest" = mice::complete(mice::mice(df, method = "rf",  m= 1, maxit = 1)),
-    "bayesian linear regression" = mice::complete(mice::mice(df, method = "norm",  m= 1, maxit = 1)),
+    "predictive mean matching" = mice::complete(mice::mice(df, method = "pmm",  m= 1, maxit = 1)) %>% mutate_all(., ~replace(., is.na(.), "NA")),
+    "classification and regression tree" = mice::complete(mice::mice(df, method = "cart",  m= 1, maxit = 1)) %>% mutate_all(., ~replace(., is.na(.), "NA")),
+    "lasso linear regression" = mice::complete(mice::mice(df, method = "lasso.norm",  m= 1, maxit = 1)) %>% mutate_all(., ~replace(., is.na(.), "NA")),
+    "linear regression" = mice::complete(mice::mice(df, method = "norm.predict",  m= 1, maxit = 1)) %>% mutate_all(., ~replace(., is.na(.), "NA")),
+    "random forest" = mice::complete(mice::mice(df, method = "rf",  m= 1, maxit = 1)) %>% mutate_all(., ~replace(., is.na(.), "NA")),
+    "bayesian linear regression" = mice::complete(mice::mice(df, method = "norm",  m= 1, maxit = 1)) %>% mutate_all(., ~replace(., is.na(.), "NA"))
   )
   
   return(df_managed)
